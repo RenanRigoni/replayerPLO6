@@ -325,38 +325,13 @@
 
       $("#btnLoad").addEventListener("click", () => { initHand($("#xmlInput").value.trim()); });
 
-      // --- FIRESTORE SAVE / LOAD ---
-
-      function askEditKey(onConfirm) {
-        const modal = document.getElementById("keyModal");
-        const inp = document.getElementById("keyInput");
-        modal.classList.add("show");
-        inp.value = "";
-        inp.focus();
-
-        const close = () => modal.classList.remove("show");
-        const cleanup = () => {
-          document.getElementById("keyConfirm").removeEventListener("click", onSave);
-          document.getElementById("keyCancel").removeEventListener("click", onCancel);
-          inp.removeEventListener("keydown", onKey);
-        };
-        const onSave = () => { close(); cleanup(); onConfirm(inp.value.trim()); };
-        const onCancel = () => { close(); cleanup(); };
-
-        document.getElementById("keyConfirm").addEventListener("click", onSave);
-        document.getElementById("keyCancel").addEventListener("click", onCancel);
-        inp.addEventListener("keydown", (e) => { if (e.key === "Enter") onSave(); if (e.key === "Escape") onCancel(); });
-      }
-
-      // --- FIRESTORE SAVE / LOAD (SEM SENHA) ---
+      // --- FIRESTORE SAVE (SEM SENHA) ---
 
       async function saveHandToCloud() {
         const xml = $("#xmlInput").value.trim();
         if (!xml) { alert("Cole o XML antes."); return; }
 
-        // 1. Processa o XML para garantir que temos o HandID
         try {
-          // Recarrega o modelo se for uma mão nova
           const tempModel = parseXmlToModel(xml);
           if (!model || model.meta.handId !== tempModel.meta.handId) {
             initHand(xml);
@@ -366,29 +341,22 @@
           return;
         }
 
-        // 2. Pega o ID e Notas
         const handId = model.meta.handId || `hand_${Date.now()}`;
         const notes = loadNotes(handId);
 
-        // 3. Prepara os dados (editKey fixo como null)
         const data = {
           xml: xml,
           notes: notes,
-          editKey: null, // Sempre público/sem senha
+          editKey: null,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // 4. Salva no Firebase
         try {
           await db.collection("hands").doc(handId).set(data, { merge: true });
-
           currentHandId = handId;
           currentEditKey = null;
 
-          // 5. Gera e exibe o link
           const url = `${window.location.origin}${window.location.pathname}#id=${handId}`;
-
-          // Tenta copiar, se falhar mostra na tela
           navigator.clipboard.writeText(url).then(() => {
             alert(`✅ Link Gerado e Copiado!\n\n${url}`);
           }).catch(() => {
@@ -397,12 +365,13 @@
 
         } catch (e) {
           console.error("Erro Firebase:", e);
-          alert(`❌ Erro ao salvar no banco.\n\nVerifique o console (F12) para detalhes.\n\n${e.message}`);
+          alert(`❌ Erro ao salvar no banco.\n\n${e.message}`);
         }
       }
 
-      // Conecta o botão
       $("#btnSaveCloud").addEventListener("click", saveHandToCloud);
+
+      // --- FIRESTORE LOAD (COM SINCRONIZAÇÃO DE NOTAS) ---
 
       async function loadHandFromCloud(handId) {
         try {
@@ -410,7 +379,11 @@
           if (!doc.exists) { alert("Mão não encontrada no banco de dados."); return; }
 
           const data = doc.data();
-          if (data.notes) saveNotes(handId, data.notes);
+
+          // SE TIVER NOTAS NA NUVEM, ELAS SALVAM NO SEU NAVEGADOR (LOCALSTORAGE)
+          if (data.notes) {
+            saveNotes(handId, data.notes);
+          }
 
           currentHandId = handId;
           currentEditKey = data.editKey || null;
@@ -423,8 +396,6 @@
           alert("Erro ao carregar do banco: " + e.message);
         }
       }
-
-      $("#btnSaveCloud").addEventListener("click", saveHandToCloud);
 
       window.addEventListener('DOMContentLoaded', () => {
         const hash = window.location.hash;
@@ -449,16 +420,94 @@
       window.addEventListener("keydown", (e) => { if (!model) return; const tag = (document.activeElement?.tagName || "").toLowerCase(); if (tag === "textarea" || tag === "input") return; if (e.key === "ArrowLeft") { stopPlay(); idx = Math.max(0, idx - 1); renderAll(); } if (e.key === "ArrowRight") { stopPlay(); idx = Math.min(steps.length - 1, idx + 1); renderAll(); } if (e.key === " " || e.code === "Space") { e.preventDefault(); timer ? stopPlay() : startPlay(); } const k = e.key.toLowerCase(); if (k === "f" && chapter.Flop != null) jumpTo(chapter.Flop); if (k === "t" && chapter.Turn != null) jumpTo(chapter.Turn); if (k === "r" && chapter.River != null) jumpTo(chapter.River); if (k === "s" && chapter.Summary != null) jumpTo(chapter.Summary); });
       $("#speedPill").textContent = "1.00x";
 
-      /* Notes Logic */
-      const STORAGE_KEY_AUTHOR = "plo6_replay_authorName"; const notesStoreKey = (handId) => `plo6_notes_${handId}`; function getAuthor() { return (localStorage.getItem(STORAGE_KEY_AUTHOR) || "").trim(); } function setAuthor(name) { localStorage.setItem(STORAGE_KEY_AUTHOR, (name || "").trim()); } function loadNotes(handId) { try { const raw = localStorage.getItem(notesStoreKey(handId)); return raw ? JSON.parse(raw) : {}; } catch (e) { return {}; } } function saveNotes(handId, data) { localStorage.setItem(notesStoreKey(handId), JSON.stringify(data)); } function ensureStreet(notes, street) { if (!notes[street]) notes[street] = []; return notes[street]; }
+      /* Notes Logic - COM SINCRONIZAÇÃO */
+      const STORAGE_KEY_AUTHOR = "plo6_replay_authorName";
+      const notesStoreKey = (handId) => `plo6_notes_${handId}`;
+
+      function getAuthor() { return (localStorage.getItem(STORAGE_KEY_AUTHOR) || "").trim(); }
+      function setAuthor(name) { localStorage.setItem(STORAGE_KEY_AUTHOR, (name || "").trim()); }
+
+      function loadNotes(handId) {
+        try { const raw = localStorage.getItem(notesStoreKey(handId)); return raw ? JSON.parse(raw) : {}; }
+        catch (e) { return {}; }
+      }
+
+      function saveNotes(handId, data) {
+        localStorage.setItem(notesStoreKey(handId), JSON.stringify(data));
+      }
+
+      function ensureStreet(notes, street) { if (!notes[street]) notes[street] = []; return notes[street]; }
+
+      // Função auxiliar para sincronizar notas com o Firestore
+      async function syncNotesToCloud(handId, notesData) {
+        if (!handId || !navigator.onLine) return;
+        try {
+          await db.collection("hands").doc(handId).set({
+            notes: notesData,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (e) {
+          console.warn("Nota salva localmente, mas falhou ao sincronizar:", e);
+        }
+      }
+
       function renderThread(handId, street) { const threadEl = document.getElementById("thread"); if (!threadEl) return; const notes = loadNotes(handId); const list = ensureStreet(notes, street); threadEl.innerHTML = ""; list.forEach(m => { const el = document.createElement("div"); el.className = "msg"; const dt = new Date(m.ts || Date.now()); el.innerHTML = `<div class="meta"><div><b>${escapeHtml(m.author || "—")}</b></div><div>${escapeHtml(dt.toLocaleString())}</div></div><div class="text">${escapeHtml(m.text || "")}</div>`; threadEl.appendChild(el); }); threadEl.scrollTop = threadEl.scrollHeight; }
-      function ensureNameGate(onOk) { const author = getAuthor(); if (author) { onOk(author); return; } const modal = document.getElementById("nameModal"); const inp = document.getElementById("nameInput"); const btnSave = document.getElementById("nameSave"); const btnCancel = document.getElementById("nameCancel"); modal.classList.add("show"); inp.value = ""; inp.focus(); const close = () => modal.classList.remove("show"); const cleanup = () => { btnSave.removeEventListener("click", onSave); btnCancel.removeEventListener("click", onCancel); inp.removeEventListener("keydown", onKey); }; const onSave = () => { const name = (inp.value || "").trim(); if (!name) return; setAuthor(name); close(); cleanup(); onOk(name); }; const onCancel = () => { close(); cleanup(); }; const onKey = (e) => { if (e.key === "Enter") onSave(); if (e.key === "Escape") onCancel(); }; btnSave.addEventListener("click", onSave); btnCancel.addEventListener("click", onCancel); inp.addEventListener("keydown", onKey); }
+
+      function ensureNameGate(onOk) { const author = getAuthor(); if (author) { onOk(author); return; } const modal = document.getElementById("nameModal"); const inp = document.getElementById("nameInput"); const btnSave = document.getElementById("nameSave"); const btnCancel = document.getElementById("nameCancel"); modal.classList.add("show"); inp.value = ""; inp.focus(); const close = () => modal.classList.remove("show"); const onSave = () => { const name = (inp.value || "").trim(); if (!name) return; setAuthor(name); close(); onOk(name); }; const onCancel = () => { close(); }; const onKey = (e) => { if (e.key === "Enter") onSave(); if (e.key === "Escape") onCancel(); }; btnSave.addEventListener("click", onSave); btnCancel.addEventListener("click", onCancel); inp.addEventListener("keydown", onKey); }
+
       function computePotOddsForActor(snap, actorId) { if (!actorId) return null; const bb = model?.bb || 1; const sbets = snap?.streetBets || {}; const maxBet = Math.max(0, ...Object.values(sbets).map(v => v / bb)); const myBet = (sbets[actorId] || 0) / bb; const toCall = Math.max(0, maxBet - myBet); if (toCall <= 0) return null; const pot = (snap?.pot || 0) / bb; const odds = toCall / (pot + toCall); return { pot, toCall, odds }; }
+
       function renderPotOdds() { const box = document.getElementById("potOddsTable"); if (!box) return; box.innerHTML = ""; box.style.display = "none"; const snap = steps[idx]; if (!snap) return; const heroId = String(model.heroId || ""); if (!heroId) return; const next = (idx + 1 < steps.length) ? steps[idx + 1] : null; if (!next) return; if (String(next.actorId || "") !== heroId) return; const po = computePotOddsForActor(snap, heroId); if (!po) return; const row = (label, value) => { const el = document.createElement("div"); el.className = "poRow"; el.innerHTML = `<div class="poLabel">${label}</div><div class="poValue mono">${value}</div>`; return el; }; box.appendChild(row("Pot", fmtBB(po.pot))); box.appendChild(row("To call", fmtBB(po.toCall))); box.appendChild(row("Pot odds", (po.odds * 100).toFixed(2) + "%")); const seatEl = document.querySelector(`.seat[data-pid="${heroId}"]`); if (!seatEl) return; const rect = seatEl.getBoundingClientRect(); const tableEl = document.getElementById("table"); if (!tableEl) return; const tRect = tableEl.getBoundingClientRect(); const x = (rect.left - tRect.left) + (rect.width / 2); const GAP_BELOW = 8; let y = (rect.bottom - tRect.top) + GAP_BELOW; box.style.left = x + "px"; box.style.top = y + "px"; box.style.transform = "translateX(-50%)"; box.style.display = "flex"; }
+
       function streetTitle(s) { const st = (s || "").toLowerCase(); if (st === "preflop") return "PRE-FLOP"; if (st === "flop") return "FLOP"; if (st === "turn") return "TURN"; if (st === "river") return "RIVER"; if (st === "payout") return "PAYOUT"; if (st === "summary") return "SUMMARY"; return String(s || "").toUpperCase(); }
+
       function getNoteStreetFromSnap(snap) { const s = snap?.street || "Preflop"; if (s === "Summary" || s === "Payout") return lastNonSummaryStreet || "Flop"; return s; } let lastNonSummaryStreet = "Preflop";
+
       function updateNotesUI() { const panel = document.getElementById("notesPanel"); if (!panel || !model || !steps || !steps.length) return; const snap = steps[idx] || steps[0]; const noteStreet = getNoteStreetFromSnap(snap); if (snap.street && snap.street !== "Summary" && snap.street !== "Payout") lastNonSummaryStreet = snap.street; panel.style.display = (steps && steps.length ? "block" : "none"); const titleEl = document.getElementById("notesStreetTitle"); titleEl.textContent = streetTitle(noteStreet); const authorEl = document.getElementById("notesAuthor"); const author = getAuthor(); if (authorEl) authorEl.textContent = author ? `Autor: ${author}` : "Clique no campo abaixo para informar seu nome"; const draft = document.getElementById("noteDraft"); if (draft) { if (!author) { draft.classList.add("locked"); draft.placeholder = "Clique aqui para informar seu nome..."; } else { draft.classList.remove("locked"); draft.placeholder = "Escreva um comentário..."; } } renderPotOdds(snap); const handId = currentHandId || (model?.meta?.handId || "unknown"); renderThread(handId, noteStreet); }
-      function bindNotesControls() { const draft = document.getElementById("noteDraft"); const btnNext = document.getElementById("btnNextStreet"); if (!draft || !btnNext) return; draft.addEventListener("focus", () => ensureNameGate(() => { })); const submitDraftIfAny = () => { const txt = (draft.value || "").trim(); if (!txt) return; const handId = currentHandId || (model?.meta?.handId || "unknown"); const snap = steps[idx] || steps[0]; const noteStreet = getNoteStreetFromSnap(snap); ensureNameGate((author) => { const notes = loadNotes(handId); const list = ensureStreet(notes, noteStreet); list.push({ author, ts: Date.now(), text: txt }); saveNotes(handId, notes); draft.value = ""; renderThread(handId, noteStreet); }); }; btnNext.addEventListener("click", () => { submitDraftIfAny(); goNextChapter(); }); draft.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); submitDraftIfAny(); } }); const btnChange = document.getElementById("btnChangeName"); if (btnChange) { btnChange.addEventListener("click", () => { localStorage.removeItem(STORAGE_KEY_AUTHOR); ensureNameGate(() => { updateNotesUI(); }); }); } }
+
+      function bindNotesControls() {
+        const draft = document.getElementById("noteDraft");
+        const btnNext = document.getElementById("btnNextStreet");
+        if (!draft || !btnNext) return;
+
+        draft.addEventListener("focus", () => ensureNameGate(() => { }));
+
+        const submitDraftIfAny = async () => {
+          const txt = (draft.value || "").trim();
+          if (!txt) return;
+          const handId = currentHandId || (model?.meta?.handId || "unknown");
+          const snap = steps[idx] || steps[0];
+          const noteStreet = getNoteStreetFromSnap(snap);
+
+          ensureNameGate(async (author) => {
+            const notes = loadNotes(handId);
+            const list = ensureStreet(notes, noteStreet);
+            list.push({ author, ts: Date.now(), text: txt });
+
+            // 1. Salva Local
+            saveNotes(handId, notes);
+
+            // 2. Limpa campo e atualiza tela
+            draft.value = "";
+            renderThread(handId, noteStreet);
+
+            // 3. SINCRONIZA COM A NUVEM (A MÁGICA ACONTECE AQUI)
+            await syncNotesToCloud(handId, notes);
+          });
+        };
+
+        btnNext.addEventListener("click", () => { submitDraftIfAny(); goNextChapter(); });
+        draft.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); submitDraftIfAny(); } });
+
+        const btnChange = document.getElementById("btnChangeName");
+        if (btnChange) {
+          btnChange.addEventListener("click", () => {
+            localStorage.removeItem(STORAGE_KEY_AUTHOR);
+            ensureNameGate(() => { updateNotesUI(); });
+          });
+        }
+      }
+
       function goNextChapter() { jumpTo(idx + 1); }
 
     </script>
