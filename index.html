@@ -114,25 +114,12 @@
       <div class="xmlFooter">
         <div class="row">
           <button id="btnLoad">Preview Local</button>
-          <!-- Botão principal agora salva na nuvem -->
-          <button id="btnSaveCloud" class="btn primary">Salvar na Nuvem</button>
+          <!-- Botão alterado para GERAR LINK -->
+          <button id="btnSaveCloud" class="btn primary">Gerar Link</button>
           <span class="pill small">v6.0.0: Firestore Backend</span>
         </div>
         <div class="small muted mono">
-          O link gerado será compartilhável e editável com senha.
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL DE SENHA -->
-    <div id="keyModal" class="nameModal" aria-hidden="true">
-      <div class="card">
-        <h3>Salvar / Editar Mão</h3>
-        <p>Defina uma senha para esta mão para poder editar depois (opcional).</p>
-        <input id="keyInput" type="text" placeholder="Senha de Edição (deixe vazio para público)" />
-        <div class="actions">
-          <button id="keyCancel" class="btn">Cancelar</button>
-          <button id="keyConfirm" class="btn primary">Salvar</button>
+          Salva na nuvem e copia o link compartilhável automaticamente.
         </div>
       </div>
     </div>
@@ -361,45 +348,61 @@
         inp.addEventListener("keydown", (e) => { if (e.key === "Enter") onSave(); if (e.key === "Escape") onCancel(); });
       }
 
+      // --- FIRESTORE SAVE / LOAD (SEM SENHA) ---
+
       async function saveHandToCloud() {
         const xml = $("#xmlInput").value.trim();
         if (!xml) { alert("Cole o XML antes."); return; }
 
-        if (!model || model.meta.handId !== parseXmlToModel(xml).meta.handId) {
-          initHand(xml);
+        // 1. Processa o XML para garantir que temos o HandID
+        try {
+          // Recarrega o modelo se for uma mão nova
+          const tempModel = parseXmlToModel(xml);
+          if (!model || model.meta.handId !== tempModel.meta.handId) {
+            initHand(xml);
+          }
+        } catch (e) {
+          alert("Erro ao ler o XML: " + e.message);
+          return;
         }
 
-        askEditKey(async (key) => {
-          try {
-            const handId = model.meta.handId || Date.now().toString();
-            const notes = loadNotes(handId);
+        // 2. Pega o ID e Notas
+        const handId = model.meta.handId || `hand_${Date.now()}`;
+        const notes = loadNotes(handId);
 
-            const data = {
-              xml: xml,
-              notes: notes,
-              editKey: key || null,
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
+        // 3. Prepara os dados (editKey fixo como null)
+        const data = {
+          xml: xml,
+          notes: notes,
+          editKey: null, // Sempre público/sem senha
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
 
-            await db.collection("hands").doc(handId).set(data, { merge: true });
+        // 4. Salva no Firebase
+        try {
+          await db.collection("hands").doc(handId).set(data, { merge: true });
 
-            currentHandId = handId;
-            currentEditKey = key || null;
+          currentHandId = handId;
+          currentEditKey = null;
 
-            const url = `${window.location.origin}${window.location.pathname}#id=${handId}`;
+          // 5. Gera e exibe o link
+          const url = `${window.location.origin}${window.location.pathname}#id=${handId}`;
 
-            navigator.clipboard.writeText(url).then(() => {
-              alert(`✅ Salvo na Nuvem!\n\nLink copiado: ${url}`);
-            }).catch(() => {
-              alert(`✅ Salvo na Nuvem!\n\nLink: ${url}`);
-            });
+          // Tenta copiar, se falhar mostra na tela
+          navigator.clipboard.writeText(url).then(() => {
+            alert(`✅ Link Gerado e Copiado!\n\n${url}`);
+          }).catch(() => {
+            prompt("✅ Link Gerado!\n\nCopie manualmente:", url);
+          });
 
-          } catch (e) {
-            console.error(e);
-            alert("Erro ao salvar: " + e.message);
-          }
-        });
+        } catch (e) {
+          console.error("Erro Firebase:", e);
+          alert(`❌ Erro ao salvar no banco.\n\nVerifique o console (F12) para detalhes.\n\n${e.message}`);
+        }
       }
+
+      // Conecta o botão
+      $("#btnSaveCloud").addEventListener("click", saveHandToCloud);
 
       async function loadHandFromCloud(handId) {
         try {
