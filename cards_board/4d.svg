@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="14.5523mm" height="21.194mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 187.46 273.02"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <font id="FontID0" horiz-adv-x="720" font-variant="normal" style="fill-rule:nonzero" font-style="normal" font-weight="600">
+	<font-face 
+		font-family="Bookman Old Style">
+		<font-face-src>
+			<font-face-name name="Bookman Old Style Negrito"/>
+		</font-face-src>
+	</font-face>
+   <missing-glyph><path d="M0 0z"/></missing-glyph>
+   <glyph unicode="4" horiz-adv-x="660" d="M354.001 680.999l154.994 0 0 -368.994 128.004 0 0 -124.005 -128.004 0 0 -188.001 -155.997 0 0 188.001 -320.994 0 0 152.332 321.997 340.667zm-1.00284 -157.16l-202.498 -211.833 202.498 0 0 211.833z"/>
+  </font>
+  <style type="text/css">
+   <![CDATA[
+    @font-face { font-family:"Bookman Old Style";font-variant:normal;font-style:normal;font-weight:600;src:url("#FontID0") format(svg)}
+    .fil0 {fill:#003399}
+    .fil1 {fill:white}
+    .fnt0 {font-weight:600;font-size:104.05px;font-family:'Bookman Old Style'}
+   ]]>
+  </style>
+ </defs>
+ <g id="Camada_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <path class="fil0" d="M36.82 0l113.83 0c20.25,0 36.82,16.57 36.82,36.81l0 199.39c0,20.25 -16.57,36.81 -36.82,36.81l-113.83 0c-20.25,0 -36.82,-16.57 -36.82,-36.81l0 -199.39c0,-20.25 16.57,-36.81 36.82,-36.81z"/>
+  <g id="_2445754500032">
+   <g transform="matrix(0.972992 0 0 1 -614.682 -48.368)">
+    <text x="693.27" y="139.97"  class="fil1 fnt0">4</text>
+   </g>
+   <path class="fil1" d="M93.73 225.88c15.49,-24.22 28.67,-41.65 40.34,-54.65 -14.9,-14.07 -28.2,-32.45 -40.34,-53.93 -12.15,21.48 -25.45,39.86 -40.34,53.93 11.67,13 24.85,30.43 40.34,54.65z"/>
+  </g>
+ </g>
+</svg>

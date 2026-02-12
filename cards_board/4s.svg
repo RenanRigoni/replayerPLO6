@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="14.5523mm" height="21.194mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 187.46 273.02"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <font id="FontID0" horiz-adv-x="720" font-variant="normal" style="fill-rule:nonzero" font-style="normal" font-weight="600">
+	<font-face 
+		font-family="Bookman Old Style">
+		<font-face-src>
+			<font-face-name name="Bookman Old Style Negrito"/>
+		</font-face-src>
+	</font-face>
+   <missing-glyph><path d="M0 0z"/></missing-glyph>
+   <glyph unicode="4" horiz-adv-x="660" d="M354.001 680.999l154.994 0 0 -368.994 128.004 0 0 -124.005 -128.004 0 0 -188.001 -155.997 0 0 188.001 -320.994 0 0 152.332 321.997 340.667zm-1.00284 -157.16l-202.498 -211.833 202.498 0 0 211.833z"/>
+  </font>
+  <style type="text/css">
+   <![CDATA[
+    @font-face { font-family:"Bookman Old Style";font-variant:normal;font-style:normal;font-weight:600;src:url("#FontID0") format(svg)}
+    .fil0 {fill:#333333}
+    .fil1 {fill:white}
+    .fnt0 {font-weight:600;font-size:104.05px;font-family:'Bookman Old Style'}
+   ]]>
+  </style>
+ </defs>
+ <g id="Camada_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <path class="fil0" d="M36.82 0l113.83 0c20.25,0 36.82,16.57 36.82,36.81l0 199.39c0,20.25 -16.57,36.81 -36.82,36.81l-113.83 0c-20.25,0 -36.82,-16.57 -36.82,-36.81l0 -199.39c0,-20.25 16.57,-36.81 36.82,-36.81z"/>
+  <g id="_2480357451648">
+   <path class="fil1" d="M93.73 130.5c-19.89,27.03 -28.4,30.1 -42.59,42.73 -14,13.25 -14.91,26.87 -0.67,40.91 13.39,10.72 28.84,7.11 37.49,-1.81 0.9,-0.99 2.82,0.65 2.27,2.59 -3.37,11.99 -6.86,19.95 -11.86,24.16 4.12,-2.77 8.87,-2.79 15.36,-2.71 6.49,-0.09 11.24,-0.06 15.36,2.71 -5,-4.21 -8.49,-12.17 -11.86,-24.16 -0.54,-1.94 1.37,-3.57 2.27,-2.59 8.64,8.92 24.09,12.53 37.49,1.81 14.24,-14.05 13.34,-27.67 -0.67,-40.91 -14.2,-12.63 -22.7,-15.7 -42.59,-42.73z"/>
+   <g transform="matrix(0.972992 0 0 1 -614.682 -392.758)">
+    <text x="693.27" y="497.56"  class="fil1 fnt0">4</text>
+   </g>
+  </g>
+ </g>
+</svg>

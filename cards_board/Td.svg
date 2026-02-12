@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="14.5523mm" height="21.194mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 253.38 369.02"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <font id="FontID0" horiz-adv-x="720" font-variant="normal" style="fill-rule:nonzero" font-style="normal" font-weight="600">
+	<font-face 
+		font-family="Bookman Old Style">
+		<font-face-src>
+			<font-face-name name="Bookman Old Style Negrito"/>
+		</font-face-src>
+	</font-face>
+   <missing-glyph><path d="M0 0z"/></missing-glyph>
+   <glyph unicode="T" horiz-adv-x="700" d="M84.6715 704.003l64.33 0 6.83414 -23.0033 384.829 0 8.3322 23.0033 64.3424 0 83.6563 -239.331 -89.9952 -31.8431c-20.1681,39.6677 -34.6659,65.5062 -43.5057,77.5031 -17.1596,23.6719 -37.1668,42.5029 -59.6625,55.9978 -16.8377,10.4988 -33.6631,15.6739 -50.3275,15.6739 -7.83697,0 -13.173,-1.83234 -16.1692,-5.67035 -2.83518,-3.66468 -4.33324,-12.1702 -4.33324,-25.5042l0 -390.994c0,-23.1643 0.829506,-37.5011 2.5009,-43.3324 1.65901,-6.00463 4.33324,-10.4988 8.3322,-14.0026 3.82563,-3.3304 9.33503,-5.67035 16.1692,-6.83414 6.83414,-1.16378 25.1575,-1.67139 54.995,-1.67139l0 -93.9941 -332 0 0 93.9941 20.1681 0c22.1614,0 36.4982,1.33711 42.6638,4.17229 6.16558,2.66185 11.0064,7.66364 14.3368,14.6711 3.16945,6.99508 4.82847,21.4929 4.82847,43.4933l0 399.834c0,11.3407 -1.32473,18.4967 -3.99896,21.5052 -2.5009,2.83518 -8.15887,4.33324 -16.4911,4.33324 -17.0111,0 -36.003,-6.33891 -56.8397,-19.0043 -20.9976,-12.6654 -39.6677,-30.4936 -55.9978,-53.6703 -6.49986,-9.00076 -20.3291,-34.4926 -41.5,-76.5002l-89.1657 31.8431 83.6686 239.331z"/>
+  </font>
+  <style type="text/css">
+   <![CDATA[
+    @font-face { font-family:"Bookman Old Style";font-variant:normal;font-style:normal;font-weight:600;src:url("#FontID0") format(svg)}
+    .fil0 {fill:#003399}
+    .fil1 {fill:white}
+    .fnt0 {font-weight:600;font-size:140.63px;font-family:'Bookman Old Style'}
+   ]]>
+  </style>
+ </defs>
+ <g id="Camada_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <path class="fil0" d="M49.76 0l153.86 0c27.37,0 49.76,22.39 49.76,49.76l0 269.5c0,27.37 -22.39,49.76 -49.76,49.76l-153.86 0c-27.37,0 -49.76,-22.39 -49.76,-49.76l0 -269.5c0,-27.37 22.39,-49.76 49.76,-49.76z"/>
+  <g id="_2445755511824">
+   <g transform="matrix(0.972992 0 0 1 834.787 -65.375)">
+    <text x="-776.85" y="189.19"  class="fil1 fnt0">T</text>
+   </g>
+   <path class="fil1" d="M126.67 305.3c20.94,-32.74 38.75,-56.29 54.53,-73.87 -20.13,-19.02 -38.11,-43.86 -54.53,-72.89 -16.42,29.03 -34.4,53.87 -54.53,72.89 15.78,17.58 33.59,41.13 54.53,73.87z"/>
+  </g>
+ </g>
+</svg>

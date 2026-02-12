@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="14.5523mm" height="21.194mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 142.04 206.86"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <font id="FontID0" horiz-adv-x="739" font-variant="normal" style="fill-rule:nonzero" font-style="normal" font-weight="700">
+	<font-face 
+		font-family="Century Gothic">
+		<font-face-src>
+			<font-face-name name="Century Gothic Negrito"/>
+		</font-face-src>
+	</font-face>
+   <missing-glyph><path d="M0 0z"/></missing-glyph>
+   <glyph unicode="Q" horiz-adv-x="839" d="M696.834 105.335l126.172 -162.335 -164.341 0 -62.6586 80.6725c-52.3331,-27.8442 -110.671,-41.6734 -175.001,-41.6734 -107.675,0 -197.001,37.1668 -268.166,111.5 -71.1765,74.3336 -106.845,163.004 -106.845,265.838 0,68.5023 16.6768,131.669 49.8446,188.991 33.1555,57.5083 78.8278,103.007 136.831,136.844 58.1644,33.824 120.662,50.8227 187.332,50.8227 101.831,0 189.325,-36.6592 262.334,-110.163 73.1574,-73.4917 109.668,-163.165 109.668,-268.834 0,-97.1636 -31.6698,-180.993 -95.1703,-251.662zm-85.6619 110.337c28.5003,42.8248 42.8248,90.3294 42.8248,142.328 0,67.8338 -22.83,125.503 -68.6633,172.834 -45.6723,47.5047 -101.002,71.1642 -165.839,71.1642 -66.8309,0 -122.829,-23.1643 -167.833,-69.3318 -45.1647,-46.1676 -67.6604,-104.827 -67.6604,-176.165 0,-79.3354 28.327,-142.167 85.1667,-188.335 44.4962,-36.164 94.836,-54.1655 151.329,-54.1655 32.4993,0 63.0053,6.00463 91.5056,17.8282l-129.836 167.176 164.329 0 64.6767 -83.3344z"/>
+  </font>
+  <style type="text/css">
+   <![CDATA[
+    @font-face { font-family:"Century Gothic";font-variant:normal;font-style:normal;font-weight:bold;src:url("#FontID0") format(svg)}
+    .fil0 {fill:#003399}
+    .fil1 {fill:white}
+    .fnt0 {font-weight:bold;font-size:78.84px;font-family:'Century Gothic'}
+   ]]>
+  </style>
+ </defs>
+ <g id="Camada_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <path class="fil0" d="M27.89 0l86.25 0c15.34,0 27.89,12.55 27.89,27.89l0 151.08c0,15.34 -12.55,27.89 -27.89,27.89l-86.25 0c-15.34,0 -27.89,-12.55 -27.89,-27.89l0 -151.08c0,-15.34 12.55,-27.89 27.89,-27.89z"/>
+  <g id="_2445756610080">
+   <g transform="matrix(0.972992 0 0 1 777.854 -36.6478)">
+    <text x="-760.72" y="106.05"  class="fil1 fnt0">Q</text>
+   </g>
+   <path class="fil1" d="M71.01 171.15c11.74,-18.35 21.72,-31.55 30.57,-41.41 -11.29,-10.66 -21.36,-24.59 -30.57,-40.86 -9.2,16.28 -19.28,30.2 -30.57,40.86 8.84,9.85 18.83,23.06 30.57,41.41z"/>
+  </g>
+ </g>
+</svg>
