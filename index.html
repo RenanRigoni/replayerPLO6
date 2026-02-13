@@ -4,10 +4,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PLO6 Replayer v6.0.0 (Cloud)</title>
+  <title>PLO6 Replayer v6.2.0 (Final)</title>
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Firebase SDKs (CDN) - NÃO MEXA AQUI -->
+  <!-- Firebase SDKs (CDN) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
@@ -16,513 +16,857 @@
 <body>
   <div class="page">
 
-    <!-- REPLAYER (TOP) -->
-    <div class="card">
-      <div class="replayerHeader">
-        <div class="headerLeft">
-          <button id="btnPrev" disabled>◀</button>
-          <button id="btnPlay" disabled>▶</button>
-          <button id="btnNext" disabled>▶</button>
+    <!-- COLUNA PRINCIPAL (ESQUERDA) -->
+    <div class="main-column">
 
-          <span class="pill" id="streetPill">Street: —</span>
-          <span class="pill" id="stepPill">Step: —</span>
+      <!-- REPLAYER -->
+      <div class="card">
 
-          <span class="pill mono" id="metaPill">—</span>
+        <!-- HEADER COMPACTO -->
+        <div class="replayerHeader">
+          <div class="headerGroup">
+            <button id="btnPrev" disabled>◀</button>
+            <button id="btnPlay" disabled>▶</button>
+            <button id="btnNext" disabled>▶</button>
+          </div>
+
+          <div class="headerDivider"></div>
+
+          <div class="headerGroup">
+            <button class="chapBtn" id="goPre" disabled>Pre</button>
+            <button class="chapBtn" id="goFlop" disabled>Flop</button>
+            <button class="chapBtn" id="goTurn" disabled>Turn</button>
+            <button class="chapBtn" id="goRiver" disabled>River</button>
+            <button class="chapBtn" id="goSD" disabled>SD</button>
+          </div>
+
+          <div style="flex:1"></div> <!-- Spacer -->
+
+          <div class="small muted" style="display:none;" id="metaPillHidden"></div>
         </div>
 
-        <div class="headerRight">
-          <span class="small muted">Velocidade</span>
-          <input id="speed" type="range" min="0.25" max="2.5" step="0.25" value="1" />
-          <span class="pill" id="speedPill">1.00x</span>
+        <div class="tableWrap">
+          <div class="table" id="table">
+            <div id="potOddsTable" class="potOddsTable"></div>
+            <div class="center">
+              <div class="potBox">
+                <div class="potVal mono" id="potVal">—</div>
+                <div class="potLbl">POT</div>
+              </div>
 
-          <span class="small muted">Timeline</span>
-          <input id="timeline" type="range" min="0" max="0" step="1" value="0" style="width:260px" />
-        </div>
-      </div>
+              <div class="board" id="board"></div>
 
-      <div class="row" style="justify-content:space-between;">
-        <div class="chapRow">
-          <button class="chapBtn" id="goPre" disabled>Pre</button>
-          <button class="chapBtn" id="goFlop" disabled>Flop</button>
-          <button class="chapBtn" id="goTurn" disabled>Turn</button>
-          <button class="chapBtn" id="goRiver" disabled>River</button>
-          <button class="chapBtn" id="goSD" disabled>SD</button>
-        </div>
-
-        <div class="small muted">
-          Atalhos: ← / → / espaço • F • T • R • S
-        </div>
-      </div>
-
-      <div style="height:10px"></div>
-
-      <div class="tableWrap">
-        <div class="table" id="table">
-          <div id="potOddsTable" class="potOddsTable"></div>
-          <div class="center">
-            <div class="potBox">
-              <div class="potVal mono" id="potVal">—</div>
-              <div class="potLbl">POT</div>
+              <div class="actionBox mono" id="actionText">—</div>
             </div>
-
-            <div class="board" id="board"></div>
-
-            <div class="actionBox mono" id="actionText">—</div>
           </div>
         </div>
       </div>
+
+      <!-- XML INPUT -->
+      <div class="card" id="xmlCard">
+        <div class="title">Entrada XML</div>
+        <div class="muted small">
+          Cole o XML ou carregue um link existente.
+        </div>
+        <div style="height:10px"></div>
+
+        <textarea id="xmlInput" spellcheck="false"></textarea>
+
+        <div class="xmlFooter">
+          <div class="row">
+            <button id="btnLoad">Preview Local</button>
+            <button id="btnSaveCloud" class="btn primary">Gerar Link</button>
+            <span class="pill small">v6.2.0</span>
+          </div>
+          <div class="small muted mono">
+            Salva na nuvem e copia o link compartilhável automaticamente.
+          </div>
+        </div>
+      </div>
+
     </div>
 
+    <!-- COLUNA LATERAL (DIREITA) -->
+    <div class="sidebar-column">
+      <!-- NOTES -->
+      <div class="card" id="notesCard" style="height:100%; display:flex; flex-direction:column;">
+        <div class="title">Anotações</div>
+        <div class="muted small">Clique na street para adicionar nota.</div>
+        <div style="height:10px"></div>
 
+        <div id="notesPanel" class="notesPanel" style="display:none;">
 
-    <!-- NOTES (MIDDLE) -->
-    <div class="card" id="notesCard">
-      <div class="title">Anotações</div>
-      <div class="muted small">Comentários em thread por street.</div>
-      <div style="height:10px"></div>
+          <!-- Autor -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div id="notesAuthor" class="muted small"></div>
+            <button id="btnChangeName" class="btn ghost small" type="button">Trocar</button>
+          </div>
 
-      <div id="notesPanel" class="notesPanel" style="display:none;">
-        <div class="notesHeader">
-          <div id="notesAuthor" class="notesAuthor"></div>
-          <button id="btnChangeName" class="btn ghost small" type="button">Trocar nome</button>
-          <div class="streetTitle" id="notesStreetTitle">PRE-FLOP</div>
+          <!-- Grid de ruas (Scrollable) -->
+          <div class="notes-grid">
+            <div class="street-note-box" id="box-Preflop" data-street="Preflop">
+              <button class="street-title-btn" onclick="selectNoteStreet('Preflop')">Pré-Flop</button>
+              <div class="street-thread" id="thread-preflop"></div>
+            </div>
+            <div class="street-note-box" id="box-Flop" data-street="Flop">
+              <button class="street-title-btn" onclick="selectNoteStreet('Flop')">Flop</button>
+              <div class="street-thread" id="thread-flop"></div>
+            </div>
+            <div class="street-note-box" id="box-Turn" data-street="Turn">
+              <button class="street-title-btn" onclick="selectNoteStreet('Turn')">Turn</button>
+              <div class="street-thread" id="thread-turn"></div>
+            </div>
+            <div class="street-note-box" id="box-River" data-street="River">
+              <button class="street-title-btn" onclick="selectNoteStreet('River')">River</button>
+              <div class="street-thread" id="thread-river"></div>
+            </div>
+          </div>
+
+          <!-- Input Area -->
+          <div class="note-input-area" id="noteInputArea">
+            <div class="small muted" style="margin-bottom:6px;" id="currentStreetLabel">Postando em: PRE-FLOP</div>
+            <div class="noteInputRow">
+              <textarea id="noteDraft" placeholder="Escreva..."></textarea>
+              <button id="btnSaveNote" class="btn primary">SEND</button>
+            </div>
+          </div>
         </div>
 
-        <div class="thread" id="thread"></div>
-
-        <div class="noteInputRow">
-          <textarea id="noteDraft" placeholder="Escreva um comentário..."></textarea>
-          <button id="btnNextStreet" class="btn">SAVE</button>
+        <div id="notesLocked" class="notesLocked">
+          <div class="muted">Carregue uma mão para liberar.</div>
         </div>
-      </div>
-
-      <div id="notesLocked" class="notesLocked">
-        <div class="muted">Carregue uma mão para liberar as anotações.</div>
       </div>
     </div>
 
-    <!-- XML INPUT (BOTTOM) -->
-    <div class="card" id="xmlCard">
-      <div class="title">Entrada XML</div>
-      <div class="muted small">
-        Cole o XML ou carregue um link existente.
-      </div>
-      <div style="height:10px"></div>
+  </div>
 
-      <textarea id="xmlInput" spellcheck="false"></textarea>
+  <script>
+    // ==========================================
+    // CONFIGURAÇÃO FIREBASE
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyC8e9R9WqWCRQ2aRZUTnnLe6MFxd7sw5CI",
+      authDomain: "replayerplo6.firebaseapp.com",
+      projectId: "replayerplo6",
+      storageBucket: "replayerplo6.firebasestorage.app",
+      messagingSenderId: "981184324480",
+      appId: "1:981184324480:web:e61d97f1eda3ebea291765",
+      measurementId: "G-GEFLSLXPW5"
+    };
+    // ==========================================
 
-      <div class="xmlFooter">
-        <div class="row">
-          <button id="btnLoad">Preview Local</button>
-          <!-- Botão alterado para GERAR LINK -->
-          <button id="btnSaveCloud" class="btn primary">Gerar Link</button>
-          <span class="pill small">v6.0.0: Firestore Backend</span>
-        </div>
-        <div class="small muted mono">
-          Salva na nuvem e copia o link compartilhável automaticamente.
-        </div>
-      </div>
-    </div>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    <script>
-      // ==========================================
-      // CONFIGURAÇÃO FIREBASE (SEUS DADOS ABAIXO)
-      // ==========================================
-      const firebaseConfig = {
-        apiKey: "AIzaSyC8e9R9WqWCRQ2aRZUTnnLe6MFxd7sw5CI",
-        authDomain: "replayerplo6.firebaseapp.com",
-        projectId: "replayerplo6",
-        storageBucket: "replayerplo6.firebasestorage.app",
-        messagingSenderId: "981184324480",
-        appId: "1:981184324480:web:e61d97f1eda3ebea291765",
-        measurementId: "G-GEFLSLXPW5"
+    const $ = sel => document.querySelector(sel);
+
+    // === CARD ASSETS ===
+    const CARD_ASSET_MODE = "svg";
+    const PLAYER_CARD_ASSET_PATH = "cards_players";
+    const BOARD_CARD_ASSET_PATH = "cards_board";
+    // ===================
+
+    let model = null;
+    let steps = [];
+    let idx = 0;
+    let timer = null;
+    let chapter = { Preflop: 0, Flop: null, Turn: null, River: null, Summary: null };
+
+    // Estado da nuvem
+    let currentHandId = null;
+    let currentEditKey = null;
+
+    const RANK_VAL = { "A": 14, "K": 13, "Q": 12, "J": 11, "T": 10, "9": 9, "8": 8, "7": 7, "6": 6, "5": 5, "4": 4, "3": 3, "2": 2 };
+
+    function combIdx(n, k) {
+      const res = []; const idx = Array.from({ length: k }, (_, i) => i);
+      while (true) { res.push(idx.slice()); let i = k - 1; while (i >= 0 && idx[i] === n - k + i) i--; if (i < 0) break; idx[i]++; for (let j = i + 1; j < k; j++) idx[j] = idx[j - 1] + 1; } return res;
+    }
+
+    function eval5(cards5) {
+      const ranks = cards5.map(c => RANK_VAL[c[0]]).sort((a, b) => b - a); const suits = cards5.map(c => c[1]); const isFlush = suits.every(s => s === suits[0]);
+      const count = new Map(); for (const r of ranks) count.set(r, (count.get(r) || 0) + 1);
+      const groups = Array.from(count.entries()).map(([r, c]) => ({ r, c })); groups.sort((a, b) => (b.c - a.c) || (b.r - a.r));
+      const uniq = Array.from(new Set(ranks)).sort((a, b) => b - a); let isStraight = false; let straightHigh = 0;
+      if (uniq.length === 5) { if (uniq[0] - uniq[4] === 4) { isStraight = true; straightHigh = uniq[0]; } else if (uniq[0] === 14 && uniq[1] === 5 && uniq[2] === 4 && uniq[3] === 3 && uniq[4] === 2) { isStraight = true; straightHigh = 5; } }
+      let cat = 0; let tieb = [];
+      if (isStraight && isFlush) { cat = 8; tieb = [straightHigh]; }
+      else if (groups[0].c === 4) { cat = 7; const quad = groups[0].r; const kicker = groups[1].r; tieb = [quad, kicker]; }
+      else if (groups[0].c === 3 && groups[1].c === 2) { cat = 6; tieb = [groups[0].r, groups[1].r]; }
+      else if (isFlush) { cat = 5; tieb = ranks.slice(); }
+      else if (isStraight) { cat = 4; tieb = [straightHigh]; }
+      else if (groups[0].c === 3) { cat = 3; const trips = groups[0].r; const kick = groups.slice(1).map(g => g.r).sort((a, b) => b - a); tieb = [trips, ...kick]; }
+      else if (groups[0].c === 2 && groups[1].c === 2) { cat = 2; const p1 = Math.max(groups[0].r, groups[1].r); const p2 = Math.min(groups[0].r, groups[1].r); const kicker = groups.find(g => g.c === 1).r; tieb = [p1, p2, kicker]; }
+      else if (groups[0].c === 2) { cat = 1; const pair = groups[0].r; const kick = groups.slice(1).map(g => g.r).sort((a, b) => b - a); tieb = [pair, ...kick]; }
+      else { cat = 0; tieb = ranks.slice(); }
+      return { cat, tieb };
+    }
+
+    function cmpScore(a, b) { if (a.cat !== b.cat) return a.cat - b.cat; const n = Math.max(a.tieb.length, b.tieb.length); for (let i = 0; i < n; i++) { const av = a.tieb[i] || 0, bv = b.tieb[i] || 0; if (av !== bv) return av - bv; } return 0; }
+
+    function computeHighlightsForBoard(board, players, foldedStatus) {
+      if (!board || board.length < 5) return null; const holeComb = combIdx(6, 2); const boardComb = combIdx(5, 3); const results = [];
+      for (const p of players) {
+        if (!p.cards || p.cards.length !== 6) continue; if (foldedStatus && foldedStatus[p.id]) continue; let best = null;
+        for (const hi of holeComb) { const hc = [p.cards[hi[0]], p.cards[hi[1]]]; for (const bi of boardComb) { const bc = [board[bi[0]], board[bi[1]], board[bi[2]]]; const hand = [...hc, ...bc]; const sc = eval5(hand); if (!best || cmpScore(sc, best.score) > 0) { best = { score: sc, holeIdx: hi.slice(), boardIdx: bi.slice() }; } } }
+        if (best) { results.push({ pid: p.id, score: best.score, holeIdx: best.holeIdx, boardIdx: best.boardIdx }); }
+      }
+      if (!results.length) return null; results.sort((a, b) => cmpScore(b.score, a.score)); const bestScore = results[0].score; const winners = results.filter(r => cmpScore(r.score, bestScore) === 0);
+      const holeCardsByPid = {}; const boardCards = new Set(); winners.forEach(w => { const p = players.find(pp => pp.id === w.pid); if (p) { holeCardsByPid[w.pid] = w.holeIdx.map(i => p.cards[i]); w.boardIdx.forEach(i => boardCards.add(board[i])); } });
+      return { holeCardsByPid, boardCards: Array.from(boardCards) };
+    }
+
+    const SUIT_TO_CHAR = { h: "♥", d: "♦", c: "♣", s: "♠" }; const SUIT_TO_CLASS = { h: "H", d: "D", c: "C", s: "S" };
+    const CHIP_LEVEL_COLORS = ["#3aa0ff", "#ffd66b", "#2ea043", "#ff8a3d", "#a371ff", "#e23b3b", "#ff62c8"];
+    const POS_ORDER_6MAX = ["BTN", "SB", "BB", "EP", "MP", "CO"]; const VISUAL_SPOTS = ["pHC", "pBL", "pTL", "pTC", "pTR", "pBR"]; const BET_SPOTS = ["bHC", "bBL", "bTL", "bTC", "bTR", "bBR"];
+
+    function chunkCards(str) { if (!str) return []; const out = []; for (let i = 0; i < str.length; i += 2) out.push(str.slice(i, i + 2)); return out; }
+    function safeFloat(x) { const n = parseFloat(x); return Number.isFinite(n) ? n : 0; }
+    function fmtBB(n) { if (n == null || Number.isNaN(n)) return '—'; const x = Math.round(n * 10) / 10; return `${x.toFixed(1)}bb`; }
+    function escapeHtml(input) { const s = String(input ?? ''); return s.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+    function normStreet(st) { const s = (st || "").toLowerCase(); if (s.includes("pre")) return "Preflop"; if (s.includes("flop")) return "Flop"; if (s.includes("turn")) return "Turn"; if (s.includes("river")) return "River"; if (s.includes("summary")) return "Summary"; return st || "—"; }
+    function sortCardsForDisplay(cards) { const suitOrder = { h: 4, d: 3, c: 2, s: 1 }; return [...(cards || [])].sort((a, b) => { const ra = RANK_VAL[a?.[0]] || 0, rb = RANK_VAL[b?.[0]] || 0; if (rb !== ra) return rb - ra; const sa = suitOrder[a?.[1]] || 0, sb = suitOrder[b?.[1]] || 0; return sb - sa; }); }
+    function assetUrl(card, kind) { if (CARD_ASSET_MODE === "none") return null; const ext = (CARD_ASSET_MODE === "svg") ? "svg" : "png"; const base = (kind === "board") ? BOARD_CARD_ASSET_PATH : PLAYER_CARD_ASSET_PATH; return `${base}/${card}.${ext}`; }
+    function makeCardlet(card, kind, opts = {}) { const url = assetUrl(card, kind); if (url) { const img = document.createElement("img"); let cls = "cardimg" + (kind === "board" ? " boardcard" : " playercard"); if (opts.highlight) cls += " hl"; if (opts.dim) cls += " dimmed"; img.className = cls; img.src = url; img.alt = card; img.onerror = () => img.replaceWith(makeCardletFallback(card, opts)); return img; } return makeCardletFallback(card, opts); }
+    function makeCardletFallback(card, opts = {}) { const r = card?.[0] || "?"; const s = card?.[1] || "?"; const suitChar = SUIT_TO_CHAR[s] || "?"; const suitCls = SUIT_TO_CLASS[s] || "S"; const el = document.createElement("div"); let cls = "cardlet " + suitCls; if (opts.highlight) cls += " hl"; if (opts.dim) cls += " dimmed"; el.className = cls; el.innerHTML = `<div class="corner tl ${suitCls}"><div>${r}</div><div class="suit">${suitChar}</div></div><div class="pip ${suitCls}"><span>${r}</span><span class="suit">${suitChar}</span></div><div class="corner br ${suitCls}"><div>${r}</div><div class="suit">${suitChar}</div></div>`; return el; }
+    function makeCardBack() { const el = document.createElement("div"); el.className = "cardback"; return el; }
+
+    // ===============================
+    // IMPORT STATS
+    // ===============================
+    function parseDriveHUDTextStats(text) {
+      const res = {};
+      const lines = String(text || "").split(/\r?\n/);
+      const parseBlock = (block) => {
+        const list = [];
+        const map = {};
+        const parts = String(block || "").split("|").map(s => s.trim()).filter(Boolean);
+        for (const part of parts) {
+          const m = part.match(/^([^:]+):\s*(.+)$/);
+          if (!m) continue;
+          const k = (m[1] || "").trim();
+          const v = (m[2] || "").trim();
+          if (!k) continue;
+          list.push({ k, v });
+          map[k.toLowerCase()] = v;
+        }
+        return { list, map };
       };
-      // ==========================================
 
-      // Inicialização Firebase (NÃO MEXA AQUI)
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
-
-      const $ = sel => document.querySelector(sel);
-
-      // === CARD ASSETS ===
-      const CARD_ASSET_MODE = "svg";
-      const PLAYER_CARD_ASSET_PATH = "cards_players";
-      const BOARD_CARD_ASSET_PATH = "cards_board";
-      // ===================
-
-      let model = null;
-      let steps = [];
-      let idx = 0;
-      let timer = null;
-      let isScrubbing = false;
-      let chapter = { Preflop: 0, Flop: null, Turn: null, River: null, Summary: null };
-
-      // Estado da nuvem
-      let currentHandId = null;
-      let currentEditKey = null;
-
-      const RANK_VAL = { "A": 14, "K": 13, "Q": 12, "J": 11, "T": 10, "9": 9, "8": 8, "7": 7, "6": 6, "5": 5, "4": 4, "3": 3, "2": 2 };
-
-      function combIdx(n, k) {
-        const res = []; const idx = Array.from({ length: k }, (_, i) => i);
-        while (true) { res.push(idx.slice()); let i = k - 1; while (i >= 0 && idx[i] === n - k + i) i--; if (i < 0) break; idx[i]++; for (let j = i + 1; j < k; j++) idx[j] = idx[j - 1] + 1; } return res;
+      for (const line of lines) {
+        const m = line.match(/^\s*([A-Za-z]{2,4}|HERO)\s*\([^)]+\)\s*\[([^\]]+)\]/);
+        if (!m) continue;
+        const label = (m[1] || "").toUpperCase();
+        const block = m[2] || "";
+        const parsed = parseBlock(block);
+        if (!parsed.list.length) continue;
+        res[label] = parsed;
       }
+      return res;
+    }
 
-      function eval5(cards5) {
-        const ranks = cards5.map(c => RANK_VAL[c[0]]).sort((a, b) => b - a); const suits = cards5.map(c => c[1]); const isFlush = suits.every(s => s === suits[0]);
-        const count = new Map(); for (const r of ranks) count.set(r, (count.get(r) || 0) + 1);
-        const groups = Array.from(count.entries()).map(([r, c]) => ({ r, c })); groups.sort((a, b) => (b.c - a.c) || (b.r - a.r));
-        const uniq = Array.from(new Set(ranks)).sort((a, b) => b - a); let isStraight = false; let straightHigh = 0;
-        if (uniq.length === 5) { if (uniq[0] - uniq[4] === 4) { isStraight = true; straightHigh = uniq[0]; } else if (uniq[0] === 14 && uniq[1] === 5 && uniq[2] === 4 && uniq[3] === 3 && uniq[4] === 2) { isStraight = true; straightHigh = 5; } }
-        let cat = 0; let tieb = [];
-        if (isStraight && isFlush) { cat = 8; tieb = [straightHigh]; }
-        else if (groups[0].c === 4) { cat = 7; const quad = groups[0].r; const kicker = groups[1].r; tieb = [quad, kicker]; }
-        else if (groups[0].c === 3 && groups[1].c === 2) { cat = 6; tieb = [groups[0].r, groups[1].r]; }
-        else if (isFlush) { cat = 5; tieb = ranks.slice(); }
-        else if (isStraight) { cat = 4; tieb = [straightHigh]; }
-        else if (groups[0].c === 3) { cat = 3; const trips = groups[0].r; const kick = groups.slice(1).map(g => g.r).sort((a, b) => b - a); tieb = [trips, ...kick]; }
-        else if (groups[0].c === 2 && groups[1].c === 2) { cat = 2; const p1 = Math.max(groups[0].r, groups[1].r); const p2 = Math.min(groups[0].r, groups[1].r); const kicker = groups.find(g => g.c === 1).r; tieb = [p1, p2, kicker]; }
-        else if (groups[0].c === 2) { cat = 1; const pair = groups[0].r; const kick = groups.slice(1).map(g => g.r).sort((a, b) => b - a); tieb = [pair, ...kick]; }
-        else { cat = 0; tieb = ranks.slice(); }
-        return { cat, tieb };
-      }
+    function fmtPlayerStatsLine(st) {
+      if (!st || !st.list || !st.list.length) return "";
+      const map = {};
+      st.list.forEach(x => {
+        map[(x.k || "").toUpperCase()] = x.v;
+      });
 
-      function cmpScore(a, b) { if (a.cat !== b.cat) return a.cat - b.cat; const n = Math.max(a.tieb.length, b.tieb.length); for (let i = 0; i < n; i++) { const av = a.tieb[i] || 0, bv = b.tieb[i] || 0; if (av !== bv) return av - bv; } return 0; }
+      const desired = [
+        { keys: ["VPIP"], label: "VPIP" },
+        { keys: ["PFR"], label: "PFR" },
+        { keys: ["3-BET", "3BET"], label: "3BET" },
+        { keys: ["AGG", "AF", "AGG%"], label: "AGG" },
+        { keys: ["HANDS"], label: "HANDS" }
+      ];
 
-      function computeHighlightsForBoard(board, players, foldedStatus) {
-        if (!board || board.length < 5) return null; const holeComb = combIdx(6, 2); const boardComb = combIdx(5, 3); const results = [];
-        for (const p of players) {
-          if (!p.cards || p.cards.length !== 6) continue; if (foldedStatus && foldedStatus[p.id]) continue; let best = null;
-          for (const hi of holeComb) { const hc = [p.cards[hi[0]], p.cards[hi[1]]]; for (const bi of boardComb) { const bc = [board[bi[0]], board[bi[1]], board[bi[2]]]; const hand = [...hc, ...bc]; const sc = eval5(hand); if (!best || cmpScore(sc, best.score) > 0) { best = { score: sc, holeIdx: hi.slice(), boardIdx: bi.slice() }; } } }
-          if (best) { results.push({ pid: p.id, score: best.score, holeIdx: best.holeIdx, boardIdx: best.boardIdx }); }
-        }
-        if (!results.length) return null; results.sort((a, b) => cmpScore(b.score, a.score)); const bestScore = results[0].score; const winners = results.filter(r => cmpScore(r.score, bestScore) === 0);
-        const holeCardsByPid = {}; const boardCards = new Set(); winners.forEach(w => { const p = players.find(pp => pp.id === w.pid); if (p) { holeCardsByPid[w.pid] = w.holeIdx.map(i => p.cards[i]); w.boardIdx.forEach(i => boardCards.add(board[i])); } });
-        return { holeCardsByPid, boardCards: Array.from(boardCards) };
-      }
-
-      const SUIT_TO_CHAR = { h: "♥", d: "♦", c: "♣", s: "♠" }; const SUIT_TO_CLASS = { h: "H", d: "D", c: "C", s: "S" };
-      const CHIP_LEVEL_COLORS = ["#3aa0ff", "#ffd66b", "#2ea043", "#ff8a3d", "#a371ff", "#e23b3b", "#ff62c8"];
-      const POS_ORDER_6MAX = ["BTN", "SB", "BB", "EP", "MP", "CO"]; const VISUAL_SPOTS = ["pHC", "pBL", "pTL", "pTC", "pTR", "pBR"]; const BET_SPOTS = ["bHC", "bBL", "bTL", "bTC", "bTR", "bBR"];
-
-      function chunkCards(str) { if (!str) return []; const out = []; for (let i = 0; i < str.length; i += 2) out.push(str.slice(i, i + 2)); return out; }
-      function safeFloat(x) { const n = parseFloat(x); return Number.isFinite(n) ? n : 0; }
-      function fmtBB(n) { if (n == null || Number.isNaN(n)) return '—'; const x = Math.round(n * 10) / 10; return `${x.toFixed(1)}bb`; }
-      function escapeHtml(input) { const s = String(input ?? ''); return s.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
-      function normStreet(st) { const s = (st || "").toLowerCase(); if (s.includes("pre")) return "Preflop"; if (s.includes("flop")) return "Flop"; if (s.includes("turn")) return "Turn"; if (s.includes("river")) return "River"; if (s.includes("summary")) return "Summary"; return st || "—"; }
-      function sortCardsForDisplay(cards) { const suitOrder = { h: 4, d: 3, c: 2, s: 1 }; return [...(cards || [])].sort((a, b) => { const ra = RANK_VAL[a?.[0]] || 0, rb = RANK_VAL[b?.[0]] || 0; if (rb !== ra) return rb - ra; const sa = suitOrder[a?.[1]] || 0, sb = suitOrder[b?.[1]] || 0; return sb - sa; }); }
-      function assetUrl(card, kind) { if (CARD_ASSET_MODE === "none") return null; const ext = (CARD_ASSET_MODE === "svg") ? "svg" : "png"; const base = (kind === "board") ? BOARD_CARD_ASSET_PATH : PLAYER_CARD_ASSET_PATH; return `${base}/${card}.${ext}`; }
-      function makeCardlet(card, kind, opts = {}) { const url = assetUrl(card, kind); if (url) { const img = document.createElement("img"); let cls = "cardimg" + (kind === "board" ? " boardcard" : " playercard"); if (opts.highlight) cls += " hl"; if (opts.dim) cls += " dimmed"; img.className = cls; img.src = url; img.alt = card; img.onerror = () => img.replaceWith(makeCardletFallback(card, opts)); return img; } return makeCardletFallback(card, opts); }
-      function makeCardletFallback(card, opts = {}) { const r = card?.[0] || "?"; const s = card?.[1] || "?"; const suitChar = SUIT_TO_CHAR[s] || "?"; const suitCls = SUIT_TO_CLASS[s] || "S"; const el = document.createElement("div"); let cls = "cardlet " + suitCls; if (opts.highlight) cls += " hl"; if (opts.dim) cls += " dimmed"; el.className = cls; el.innerHTML = `<div class="corner tl ${suitCls}"><div>${r}</div><div class="suit">${suitChar}</div></div><div class="pip ${suitCls}"><span>${r}</span><span class="suit">${suitChar}</span></div><div class="corner br ${suitCls}"><div>${r}</div><div class="suit">${suitChar}</div></div>`; return el; }
-      function makeCardBack() { const el = document.createElement("div"); el.className = "cardback"; return el; }
-
-      function parseXmlToModel(xmlText) {
-        const parser = new DOMParser(); const doc = parser.parseFromString(xmlText, "text/xml"); const parseErr = doc.querySelector("parsererror"); if (parseErr) throw new Error("XML inválido."); const hh = doc.querySelector("HandHistory"); if (!hh) throw new Error("Não achei <HandHistory>.");
-        const handId = hh.querySelector("HandId")?.textContent?.trim() || "—"; const tableName = hh.querySelector("TableName")?.textContent?.trim() || "—"; const buttonPos = parseInt(hh.querySelector("DealerButtonPosition")?.textContent || "0", 10) || null; const bb = safeFloat(hh.querySelector("Limit > BigBlind")?.textContent) || 1;
-        let community = chunkCards(hh.querySelector("CommunityCards")?.textContent?.trim() || ""); const runs = []; const multipleRunNodes = hh.querySelectorAll("CommunityCardsMultipleRun > string"); if (multipleRunNodes.length > 0) { multipleRunNodes.forEach(n => { const text = n.textContent.trim(); const cards = chunkCards(text); runs.push(...cards); }); }
-        const heroId = hh.querySelector("HeroName")?.textContent?.trim() || null;
-        const players = Array.from(hh.querySelectorAll("Players > Player")).map(p => { const id = p.getAttribute("PlayerName") || ""; const nick = p.getAttribute("PlayerNick") || id; const seat = parseInt(p.getAttribute("SeatNumber") || "0", 10) || null; const startStack = safeFloat(p.getAttribute("StartingStack")) || 0; const cards = chunkCards(p.getAttribute("Cards") || ""); const win = safeFloat(p.getAttribute("Win")); return { id, nick, seat, startStack, cards, win }; }).sort((a, b) => (a.seat || 99) - (b.seat || 99));
-        const actions = Array.from(hh.querySelectorAll("Actions > HandAction")).map((a, i) => { const playerId = a.getAttribute("PlayerName") || ""; const type = a.getAttribute("HandActionType") || ""; const street = normStreet(a.getAttribute("Street") || ""); const amt = safeFloat(a.getAttribute("Amount")); const isAllIn = (a.getAttribute("IsAllIn") || "false").toLowerCase() === "true"; const source = a.getAttribute("SourceActionType") || ""; return { i, playerId, type, street, amt, isAllIn, source }; });
-        const idToPlayer = new Map(players.map(p => [p.id, p])); let board1 = community; let board2 = []; let isRIT = runs.length > 0;
-        if (isRIT) { if (runs.length === 5) { board2 = runs; } else { const sharedCount = 5 - runs.length; board2 = community.slice(0, sharedCount).concat(runs); } }
-        return { meta: { handId, tableName, buttonPos, bb }, heroId, players, idToPlayer, community, actions, isRIT, board1, board2 };
-      }
-
-      function actionLabel(a) { if (!a) return "—"; const p = model?.idToPlayer?.get(a.playerId); const name = p?.nick || a.playerId || "—"; const abs = Math.abs(a.amt || 0); const allin = a.isAllIn ? " (all-in)" : ""; if (a.type === "SMALL_BLIND") return `${name}: posts SB ${abs}`; if (a.type === "BIG_BLIND") return `${name}: posts BB ${abs}`; if (a.type === "FOLD") return `${name}: folds`; if (a.type === "CALL") return `${name}: calls ${abs}${allin}`; if (a.type === "BET") return `${name}: bets ${abs}${allin}`; if (a.type === "RAISE") return `${name}: raises ${abs}${allin}`; if (a.type === "ALL_IN") return `${name}: all-in ${abs}`; if (a.type === "WINS") return `${name}: wins ${abs}`; return `${name}: ${a.type} ${a.amt}`; }
-      const MAP_TO_DESIRED = { "UTG": "EP", "HJ": "MP", "CO": "CO", "BTN": "BTN", "SB": "SB", "BB": "BB" };
-
-      function computePositions() { const seatToPlayer = new Map(model.players.map(p => [p.seat, p])); const seats = model.players.map(p => p.seat).filter(x => x != null).sort((a, b) => a - b); const btnSeat = model.meta.buttonPos; const seatPosRaw = {}; const startIdx = seats.indexOf(btnSeat); const RAW = ["BTN", "SB", "BB", "UTG", "HJ", "CO"]; if (startIdx >= 0) { for (let k = 0; k < seats.length && k < RAW.length; k++) { const seat = seats[(startIdx + k) % seats.length]; const p = seatToPlayer.get(seat); if (p) seatPosRaw[p.id] = RAW[k]; } } else { model.players.forEach((p, i) => seatPosRaw[p.id] = RAW[i] || `P${i + 1}`); } const seatPos = {}; Object.keys(seatPosRaw).forEach(pid => { seatPos[pid] = MAP_TO_DESIRED[seatPosRaw[pid]] || seatPosRaw[pid]; }); model._posById = seatPos; }
-      function buildVisualLayoutByPosition() { const hero = model.players.find(p => p.id === model.heroId); if (!hero) return; const heroPos = model._posById?.[hero.id] || "SB"; const desiredRing = ["BTN", "SB", "BB", "EP", "MP", "CO"]; const heroIdx = desiredRing.indexOf(heroPos); const walk = ["SB", "BB", "EP", "MP", "CO", "BTN"]; const walkRot = (heroIdx >= 0) ? (function () { const base = ["SB", "BB", "EP", "MP", "CO", "BTN"]; const start = base.indexOf(heroPos); if (start < 0) return base; return [...base.slice(start), ...base.slice(0, start)]; })() : ["SB", "BB", "EP", "MP", "CO", "BTN"]; const mapping = {}; const betMapping = {}; walkRot.forEach((pos, i) => { mapping[pos] = VISUAL_SPOTS[i]; betMapping[pos] = BET_SPOTS[i]; }); model._visualById = {}; model._betSpotById = {}; model.players.forEach(p => { const pos = model._posById?.[p.id] || "—"; model._visualById[p.id] = mapping[pos] || "pTL"; model._betSpotById[p.id] = betMapping[pos] || "bTL"; }); }
-
-      function buildSteps() {
-        const stacks = {}; model.players.forEach(p => stacks[p.id] = p.startStack); let pot = 0; let street = "Preflop"; let prevStreet = street; let streetBets = {}; const folded = {}; const payouts = {}; let raiseLevel = 0; let levelById = {}; const snaps = [];
-        const createSnap = (s, board, text, actor = null, extra = {}) => { return { step: 0, street: s, board: board, pot, stacks: { ...stacks }, streetBets: { ...streetBets }, folded: { ...folded }, levelById: { ...levelById }, actionText: text, actorId: actor, ...extra }; };
-        snaps.push(createSnap("Preflop", [], "Start of hand")); let stepCounter = 0; let currentBoard = []; const cc = model.community || []; const flop = cc.slice(0, 3); const turn = cc.length >= 4 ? cc.slice(0, 4) : [];
-        (model.actions || []).forEach((a) => {
-          const nextStreet = a?.street || "—";
-          if (nextStreet !== prevStreet) {
-            streetBets = {}; raiseLevel = 0; levelById = {}; prevStreet = nextStreet; street = nextStreet; if (street === "Flop") currentBoard = flop; else if (street === "Turn") currentBoard = turn; else if (street === "River") { if (model.isRIT) { } else { currentBoard = cc.slice(0, 5); } }
-            let label = `— ${String(street).toUpperCase()} —`; if (model.isRIT && street === "River") label = "— RUN IT TWICE —"; stepCounter++; snaps.push(createSnap(street, currentBoard, label));
+      const parts = [];
+      desired.forEach(d => {
+        for (const k of d.keys) {
+          if (map[k]) {
+            parts.push(`${d.label}: ${map[k]}`);
+            break;
           }
-          if (a?.type === "FOLD" && a?.playerId) folded[a.playerId] = true; const isWins = (a?.type === "WINS"); if (isWins && a?.playerId) payouts[a.playerId] = (payouts[a.playerId] || 0) + (a.amt || 0); const src = (a?.source || "").toUpperCase(); const isRaiseAllIn = (a?.type === "ALL_IN" && src === "RAISE"); const isCallAllIn = (a?.type === "ALL_IN" && src === "CALL"); const isIncrease = (a?.type === "BET") || (a?.type === "RAISE") || isRaiseAllIn; const isCall = (a?.type === "CALL") || isCallAllIn;
-          if (a?.type === "SMALL_BLIND" || a?.type === "BIG_BLIND") { if (a?.playerId) levelById[a.playerId] = 0; } else if (isIncrease) { raiseLevel = Math.min(raiseLevel + 1, 6); if (a?.playerId) levelById[a.playerId] = raiseLevel; } else if (isCall) { if (a?.playerId) levelById[a.playerId] = raiseLevel; } else { if (a?.playerId && levelById[a.playerId] == null) levelById[a.playerId] = 0; }
-          if (a?.playerId && stacks[a.playerId] != null) stacks[a.playerId] += (a.amt || 0); if (isWins) return; if ((a?.amt || 0) < 0) { const contrib = Math.abs(a.amt); pot += contrib; streetBets[a.playerId] = (streetBets[a.playerId] || 0) + contrib; }
-          stepCounter++; snaps.push(createSnap(nextStreet, currentBoard, actionLabel(a), a?.playerId || null));
-        });
-        const payoutIds = Object.keys(payouts); if (payoutIds.length) { stepCounter++; snaps.push({ step: stepCounter, street: "Payout", board: [], pot, stacks: { ...stacks }, streetBets: {}, folded: { ...folded }, levelById: { ...levelById }, payouts: { ...payouts }, actionText: "— PAYOUT —", actorId: null, isRIT: model.isRIT }); }
-        snaps.forEach((s, i) => s.step = i); steps = snaps; return steps;
-      }
-
-      function computeChapters() { chapter = { Preflop: 0, Flop: null, Turn: null, River: null, Summary: null }; for (let i = 0; i < steps.length; i++) { const s = steps[i]; if (!s) continue; if (s.street === "Flop" && chapter.Flop == null) chapter.Flop = i; if (s.street === "Turn" && chapter.Turn == null) chapter.Turn = i; if (s.street === "River" && chapter.River == null) chapter.River = i; if (s.street === "Summary" && chapter.Summary == null) chapter.Summary = i; } $("#goPre").disabled = false; $("#goFlop").disabled = chapter.Flop == null; $("#goTurn").disabled = chapter.Turn == null; $("#goRiver").disabled = chapter.River == null; $("#goSD").disabled = chapter.Summary == null; }
-      function setChapterActive(st) { const setP = (id, on) => $(id).classList.toggle("primary", !!on); setP("#goPre", st === "Preflop"); setP("#goFlop", st === "Flop"); setP("#goTurn", st === "Turn"); setP("#goRiver", st === "River"); setP("#goSD", st === "Summary"); }
-      function makeBetPile(bbAmount, betSpotClass, level, chipsCount) { const el = document.createElement("div"); el.className = `betPile ${betSpotClass}`; const lvl = Math.min(Math.max(level || 0, 0), 6); el.style.setProperty("--chipColor", CHIP_LEVEL_COLORS[lvl] || CHIP_LEVEL_COLORS[0]); const n = Math.max(1, chipsCount || 3); const chipsHtml = Array.from({ length: n }).map(() => `<div class="chip"></div>`).join(""); el.innerHTML = `<div class="chips">${chipsHtml}</div><div class="amt mono">${bbAmount}</div>`; return el; }
-      function makeWinPile(bbAmount, betSpotClass, chipsCount) { const el = document.createElement("div"); el.className = `winPile ${betSpotClass}`; el.style.setProperty("--chipColor", "#ffd66b"); const n = Math.max(4, Math.min(12, chipsCount || 8)); const chipsHtml = Array.from({ length: n }).map(() => `<div class="chip"></div>`).join(""); el.innerHTML = `<div class="chips">${chipsHtml}</div><div class="amt mono">+${bbAmount}bb</div>`; return el; }
-
-      function renderTable() {
-        const table = $("#table"); Array.from(table.querySelectorAll(".seat, .betPile, .winPile")).forEach(el => el.remove()); const snap = steps[idx]; if (!snap) return; const bb = model.meta.bb || 1;
-        $("#potVal").textContent = fmtBB((snap.pot || 0) / bb); $("#streetPill").textContent = `Street: ${snap.street || "—"}`; const boardEl = $("#board"); boardEl.innerHTML = ""; boardEl.className = "board";
-        const showRITBoards = model.isRIT && (snap.street === "River" || snap.street === "Payout");
-
-        if (showRITBoards) {
-          const createBoardRow = (boardCards, label) => { const row = document.createElement("div"); row.className = "rit-board-row"; const lbl = document.createElement("div"); lbl.className = "rit-label"; lbl.textContent = label; const cardsDiv = document.createElement("div"); cardsDiv.className = "rit-cards-container"; const highlights = computeHighlightsForBoard(boardCards, model.players, snap.folded); boardCards.forEach(c => { const isHl = highlights && highlights.boardCards && highlights.boardCards.includes(c); const dim = highlights && highlights.boardCards && !isHl; cardsDiv.appendChild(makeCardlet(c, "board", { highlight: isHl, dim: dim })); }); row.appendChild(lbl); row.appendChild(cardsDiv); return { row, highlights }; };
-          boardEl.classList.add("rit-vertical-layout"); const b1Res = createBoardRow(model.board1, "Run 1"); boardEl.appendChild(b1Res.row); const b2Res = createBoardRow(model.board2, "Run 2"); boardEl.appendChild(b2Res.row); const combinedHoleHighlights = {}; if (b1Res.highlights && b1Res.highlights.holeCardsByPid) Object.assign(combinedHoleHighlights, b1Res.highlights.holeCardsByPid); if (b2Res.highlights && b2Res.highlights.holeCardsByPid) Object.assign(combinedHoleHighlights, b2Res.highlights.holeCardsByPid); snap.mergedHighlights = { holeCardsByPid: combinedHoleHighlights };
-        } else {
-          const board = snap.board || [];
-          if (!board.length && snap.street !== "Payout") { const d = document.createElement("div"); d.className = "muted small"; d.textContent = "Board: —"; boardEl.appendChild(d); } else if (board.length) {
-            const isShowdown = (snap.street === "Summary" || snap.street === "Payout");
-            const highlights = isShowdown ? computeHighlightsForBoard(board, model.players, snap.folded) : null;
-            snap.mergedHighlights = highlights;
-            board.forEach((c) => { const isHl = highlights && highlights.boardCards && highlights.boardCards.includes(c); const dim = highlights && highlights.boardCards && !isHl; boardEl.appendChild(makeCardlet(c, "board", { highlight: isHl, dim: dim })); });
-          }
-        }
-
-        $("#actionText").textContent = snap.actionText || "—"; setChapterActive(snap.street);
-
-        model.players.forEach(p => {
-          const isFolded = !!snap.folded?.[p.id]; const seat = document.createElement("div"); const active = (snap.actorId === p.id); const isHero = (p.id === model.heroId); seat.className = `seat ${model._visualById?.[p.id] || "pTL"}` + (active ? " active" : "") + (isFolded ? " folded" : "") + (isHero ? " hero" : ""); seat.setAttribute('data-pid', p.id); if (isHero) seat.setAttribute('data-hero', '1');
-          const posLabel = model._posById?.[p.id] || `Seat ${p.seat}`; const isBTN = posLabel === "BTN"; const stackBB = ((snap.stacks?.[p.id] ?? 0) / bb);
-          const showVillain = (snap.street === "Summary" || snap.street === "Payout") && p.cards && p.cards.length; const showCards = (isHero || showVillain) && !isFolded;
-          seat.innerHTML = `<div class="badges" style="justify-content:flex-end; margin-bottom:8px;">${isBTN ? `<span class="badge btn">BTN</span>` : ``}<span class="badge">${posLabel}</span></div>`;
-          const cardsRow = document.createElement("div"); cardsRow.className = "cardsRow";
-          if (isFolded) { } else if (showCards) { const displayCards = sortCardsForDisplay(p.cards); const winnerCardsSet = (snap.mergedHighlights && snap.mergedHighlights.holeCardsByPid && snap.mergedHighlights.holeCardsByPid[p.id]) ? new Set(snap.mergedHighlights.holeCardsByPid[p.id]) : null; displayCards.forEach(c => { const isHl = winnerCardsSet && winnerCardsSet.has(c); const shouldDim = winnerCardsSet && !isHl; cardsRow.appendChild(makeCardlet(c, "player", { highlight: !!isHl, dim: shouldDim })); }); } else { for (let k = 0; k < 6; k++) cardsRow.appendChild(makeCardBack()); }
-          seat.appendChild(cardsRow); if (isFolded) { const fm = document.createElement("div"); fm.className = "foldMark mono"; fm.textContent = "FOLD"; seat.appendChild(fm); }
-          const bar = document.createElement("div"); bar.className = "playerBar"; bar.innerHTML = `<div class="pname">${p.nick || p.id}</div><div class="pstack mono">${fmtBB(stackBB)}</div>`; seat.appendChild(bar); table.appendChild(seat);
-        });
-
-        model.players.forEach(p => {
-          const bet = (snap.streetBets?.[p.id] ?? 0) / bb; if (bet > 0) { const spot = model._betSpotById?.[p.id] || "bTL"; const pos = model._posById?.[p.id] || ""; const lvl = snap.levelById?.[p.id] ?? 0; const isPre = (snap.street === "Preflop"); const isSBBlindOnly = isPre && pos === "SB" && lvl === 0 && Math.abs(bet - 0.5) < 1e-6; const isBBBlindOnly = isPre && pos === "BB" && lvl === 0 && Math.abs(bet - 1.0) < 1e-6; let level = lvl; let chipsCount; if (isSBBlindOnly) { level = 0; chipsCount = 1; } else if (isBBBlindOnly) { level = 0; chipsCount = 2; } else { const cl = Math.min(Math.max(level, 0), 6); chipsCount = Math.min(8, 2 + Math.max(cl, 0)); } const pile = makeBetPile(fmtBB(bet), spot, level, chipsCount); table.appendChild(pile); }
-        });
-
-        if (snap.payouts) { table.querySelectorAll(".winPile").forEach(n => n.remove()); Object.entries(snap.payouts).forEach(([pid, won]) => { if (!won || won <= 0) return; const pos = model._posById?.[pid]; if (!pos) return; const spot = (model._betSpotById?.[pid] || "bTL"); const bb = (model?.meta?.bb || 1); const wonBB = (won / bb); const wonTxt = (Math.round(wonBB * 10) / 10).toFixed(1); const chipsCount = Math.max(8, Math.min(14, Math.round(wonBB / 10) + 8)); const pile = makeWinPile(wonTxt, spot, chipsCount); table.appendChild(pile); }); }
-      }
-
-      function renderHUD() { const snap = steps[idx]; if (!snap) return; $("#stepPill").textContent = `Step: ${snap.step ?? "—"}/${Math.max(0, steps.length - 1)}`; $("#timeline").max = String(Math.max(0, steps.length - 1)); if (!isScrubbing) $("#timeline").value = String(idx); $("#btnPrev").disabled = idx <= 0; $("#btnNext").disabled = idx >= steps.length - 1; $("#btnPlay").disabled = steps.length <= 1; $("#btnPlay").textContent = timer ? "⏸" : "▶"; }
-      function renderAll() { if (!model || !steps || !steps.length) return; if (!steps[idx]) idx = 0; renderTable(); renderHUD(); updateNotesUI(); renderPotOdds(); }
-      function stopPlay() { if (timer) { clearInterval(timer); timer = null; } renderHUD(); }
-      function startPlay() { stopPlay(); const speed = parseFloat($("#speed").value) || 1; const baseMs = 900; const ms = Math.max(120, Math.round(baseMs / speed)); timer = setInterval(() => { if (idx >= steps.length - 1) { stopPlay(); return; } idx++; renderAll(); bindNotesControls(); updateNotesUI(); }, ms); renderHUD(); }
-      function jumpTo(stepIndex) { stopPlay(); idx = Math.min(Math.max(0, stepIndex), steps.length - 1); renderAll(); }
-
-      // --- LÓGICA DE INIT E FIRESTORE ---
-
-      function initHand(xmlText) {
-        try {
-          stopPlay();
-          model = parseXmlToModel(xmlText);
-          computePositions();
-          buildVisualLayoutByPosition();
-          steps = buildSteps();
-          idx = 0;
-          computeChapters();
-          $("#metaPill").textContent = `Hand ${model.meta.handId} • BB=${model.meta.bb} • ${model.meta.tableName}`;
-          $("#btnPrev").disabled = false; $("#btnNext").disabled = false; $("#btnPlay").disabled = false;
-          $("#timeline").max = String(Math.max(0, steps.length - 1)); $("#timeline").value = "0";
-          renderAll();
-          bindNotesControls();
-          updateNotesUI();
-        } catch (e) { alert(e.message || String(e)); }
-      }
-
-      $("#btnLoad").addEventListener("click", () => { initHand($("#xmlInput").value.trim()); });
-
-      // --- FIRESTORE SAVE (SEM SENHA) ---
-
-      async function saveHandToCloud() {
-        const xml = $("#xmlInput").value.trim();
-        if (!xml) { alert("Cole o XML antes."); return; }
-
-        try {
-          const tempModel = parseXmlToModel(xml);
-          if (!model || model.meta.handId !== tempModel.meta.handId) {
-            initHand(xml);
-          }
-        } catch (e) {
-          alert("Erro ao ler o XML: " + e.message);
-          return;
-        }
-
-        const handId = model.meta.handId || `hand_${Date.now()}`;
-        const notes = loadNotes(handId);
-
-        const data = {
-          xml: xml,
-          notes: notes,
-          editKey: null,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        try {
-          await db.collection("hands").doc(handId).set(data, { merge: true });
-          currentHandId = handId;
-          currentEditKey = null;
-
-          const url = `${window.location.origin}${window.location.pathname}#id=${handId}`;
-          navigator.clipboard.writeText(url).then(() => {
-            alert(`✅ Link Gerado e Copiado!\n\n${url}`);
-          }).catch(() => {
-            prompt("✅ Link Gerado!\n\nCopie manualmente:", url);
-          });
-
-        } catch (e) {
-          console.error("Erro Firebase:", e);
-          alert(`❌ Erro ao salvar no banco.\n\n${e.message}`);
-        }
-      }
-
-      $("#btnSaveCloud").addEventListener("click", saveHandToCloud);
-
-      // --- FIRESTORE LOAD (COM SINCRONIZAÇÃO DE NOTAS) ---
-
-      async function loadHandFromCloud(handId) {
-        try {
-          const doc = await db.collection("hands").doc(handId).get();
-          if (!doc.exists) { alert("Mão não encontrada no banco de dados."); return; }
-
-          const data = doc.data();
-
-          // SE TIVER NOTAS NA NUVEM, ELAS SALVAM NO SEU NAVEGADOR (LOCALSTORAGE)
-          if (data.notes) {
-            saveNotes(handId, data.notes);
-          }
-
-          currentHandId = handId;
-          currentEditKey = data.editKey || null;
-
-          $("#xmlInput").value = data.xml;
-          initHand(data.xml);
-
-        } catch (e) {
-          console.error(e);
-          alert("Erro ao carregar do banco: " + e.message);
-        }
-      }
-
-      window.addEventListener('DOMContentLoaded', () => {
-        const hash = window.location.hash;
-        if (hash && hash.startsWith("#id=")) {
-          const handId = hash.substring(4);
-          loadHandFromCloud(handId);
         }
       });
 
-      $("#btnPrev").addEventListener("click", () => { stopPlay(); idx = Math.max(0, idx - 1); renderAll(); });
-      $("#btnNext").addEventListener("click", () => { stopPlay(); idx = Math.min(steps.length - 1, idx + 1); renderAll(); });
-      $("#btnPlay").addEventListener("click", () => { timer ? stopPlay() : startPlay(); });
-      $("#speed").addEventListener("input", () => { const v = parseFloat($("#speed").value) || 1; $("#speedPill").textContent = `${v.toFixed(2)}x`; if (timer) startPlay(); });
-      $("#timeline").addEventListener("input", () => { stopPlay(); idx = parseInt($("#timeline").value || "0", 10) || 0; renderAll(); });
-      $("#timeline").addEventListener("pointerdown", () => { isScrubbing = true; stopPlay(); });
-      window.addEventListener("pointerup", () => { isScrubbing = false; });
-      $("#goPre").addEventListener("click", () => jumpTo(chapter.Preflop ?? 0));
-      $("#goFlop").addEventListener("click", () => { if (chapter.Flop != null) jumpTo(chapter.Flop); });
-      $("#goTurn").addEventListener("click", () => { if (chapter.Turn != null) jumpTo(chapter.Turn); });
-      $("#goRiver").addEventListener("click", () => { if (chapter.River != null) jumpTo(chapter.River); });
-      $("#goSD").addEventListener("click", () => { if (chapter.Summary != null) jumpTo(chapter.Summary); });
-      window.addEventListener("keydown", (e) => { if (!model) return; const tag = (document.activeElement?.tagName || "").toLowerCase(); if (tag === "textarea" || tag === "input") return; if (e.key === "ArrowLeft") { stopPlay(); idx = Math.max(0, idx - 1); renderAll(); } if (e.key === "ArrowRight") { stopPlay(); idx = Math.min(steps.length - 1, idx + 1); renderAll(); } if (e.key === " " || e.code === "Space") { e.preventDefault(); timer ? stopPlay() : startPlay(); } const k = e.key.toLowerCase(); if (k === "f" && chapter.Flop != null) jumpTo(chapter.Flop); if (k === "t" && chapter.Turn != null) jumpTo(chapter.Turn); if (k === "r" && chapter.River != null) jumpTo(chapter.River); if (k === "s" && chapter.Summary != null) jumpTo(chapter.Summary); });
-      $("#speedPill").textContent = "1.00x";
+      return parts.join(" | ");
+    }
 
-      /* Notes Logic - COM SINCRONIZAÇÃO */
-      const STORAGE_KEY_AUTHOR = "plo6_replay_authorName";
-      const notesStoreKey = (handId) => `plo6_notes_${handId}`;
+    function applyImportedStatsToModel(textHH) {
+      if (!model) return;
+      const parsed = parseDriveHUDTextStats(textHH);
+      const posToPid = {};
+      model.players.forEach(p => {
+        const pos = model._posById?.[p.id];
+        if (pos) posToPid[pos] = p.id;
+      });
 
-      function getAuthor() { return (localStorage.getItem(STORAGE_KEY_AUTHOR) || "").trim(); }
-      function setAuthor(name) { localStorage.setItem(STORAGE_KEY_AUTHOR, (name || "").trim()); }
+      const labelToPos = (lbl) => {
+        const L = (lbl || "").toUpperCase();
+        if (L === "HERO") return "HERO";
+        if (L === "HJ") return "MP";
+        if (L === "UTG") return "EP";
+        return L;
+      };
 
-      function loadNotes(handId) {
-        try { const raw = localStorage.getItem(notesStoreKey(handId)); return raw ? JSON.parse(raw) : {}; }
-        catch (e) { return {}; }
+      const byPid = {};
+      Object.entries(parsed).forEach(([label, st]) => {
+        const pos = labelToPos(label);
+        let pid = null;
+        if (pos === "HERO") {
+          pid = String(model.heroId || "");
+        } else {
+          pid = posToPid[pos] ? String(posToPid[pos]) : null;
+        }
+        if (pid) byPid[pid] = st;
+      });
+      model._statsByPid = byPid;
+    }
+
+    function parseXmlToModel(xmlText) {
+      const parser = new DOMParser(); const doc = parser.parseFromString(xmlText, "text/xml"); const parseErr = doc.querySelector("parsererror"); if (parseErr) throw new Error("XML inválido."); const hh = doc.querySelector("HandHistory"); if (!hh) throw new Error("Não achei <HandHistory>.");
+      const handId = hh.querySelector("HandId")?.textContent?.trim() || "—"; const tableName = hh.querySelector("TableName")?.textContent?.trim() || "—"; const buttonPos = parseInt(hh.querySelector("DealerButtonPosition")?.textContent || "0", 10) || null; const bb = safeFloat(hh.querySelector("Limit > BigBlind")?.textContent) || 1;
+      let community = chunkCards(hh.querySelector("CommunityCards")?.textContent?.trim() || ""); const runs = []; const multipleRunNodes = hh.querySelectorAll("CommunityCardsMultipleRun > string"); if (multipleRunNodes.length > 0) { multipleRunNodes.forEach(n => { const text = n.textContent.trim(); const cards = chunkCards(text); runs.push(...cards); }); }
+      const heroId = hh.querySelector("HeroName")?.textContent?.trim() || null;
+      const players = Array.from(hh.querySelectorAll("Players > Player")).map(p => { const id = p.getAttribute("PlayerName") || ""; const nick = p.getAttribute("PlayerNick") || id; const seat = parseInt(p.getAttribute("SeatNumber") || "0", 10) || null; const startStack = safeFloat(p.getAttribute("StartingStack")) || 0; const cards = chunkCards(p.getAttribute("Cards") || ""); const win = safeFloat(p.getAttribute("Win")); return { id, nick, seat, startStack, cards, win }; }).sort((a, b) => (a.seat || 99) - (b.seat || 99));
+      const actions = Array.from(hh.querySelectorAll("Actions > HandAction")).map((a, i) => { const playerId = a.getAttribute("PlayerName") || ""; const type = a.getAttribute("HandActionType") || ""; const street = normStreet(a.getAttribute("Street") || ""); const amt = safeFloat(a.getAttribute("Amount")); const isAllIn = (a.getAttribute("IsAllIn") || "false").toLowerCase() === "true"; const source = a.getAttribute("SourceActionType") || ""; return { i, playerId, type, street, amt, isAllIn, source }; });
+      const idToPlayer = new Map(players.map(p => [p.id, p])); let board1 = community; let board2 = []; let isRIT = runs.length > 0;
+      if (isRIT) { if (runs.length === 5) { board2 = runs; } else { const sharedCount = 5 - runs.length; board2 = community.slice(0, sharedCount).concat(runs); } }
+      return { meta: { handId, tableName, buttonPos, bb }, heroId, players, idToPlayer, community, actions, isRIT, board1, board2 };
+    }
+
+    function actionLabel(a) { if (!a) return "—"; const p = model?.idToPlayer?.get(a.playerId); const name = p?.nick || a.playerId || "—"; const abs = Math.abs(a.amt || 0); const allin = a.isAllIn ? " (all-in)" : ""; if (a.type === "SMALL_BLIND") return `${name}: posts SB ${abs}`; if (a.type === "BIG_BLIND") return `${name}: posts BB ${abs}`; if (a.type === "FOLD") return `${name}: folds`; if (a.type === "CALL") return `${name}: calls ${abs}${allin}`; if (a.type === "BET") return `${name}: bets ${abs}${allin}`; if (a.type === "RAISE") return `${name}: raises ${abs}${allin}`; if (a.type === "ALL_IN") return `${name}: all-in ${abs}`; if (a.type === "WINS") return `${name}: wins ${abs}`; return `${name}: ${a.type} ${a.amt}`; }
+    const MAP_TO_DESIRED = { "UTG": "EP", "HJ": "MP", "CO": "CO", "BTN": "BTN", "SB": "SB", "BB": "BB" };
+
+    function computePositions() {
+      const seatToPlayer = new Map(model.players.map(p => [p.seat, p]));
+      const seats = model.players.map(p => p.seat).filter(x => x != null).sort((a, b) => a - b);
+      const btnSeat = model.meta.buttonPos;
+      const seatPosRaw = {};
+      const startIdx = seats.indexOf(btnSeat);
+
+      // Lógica dinâmica para definir as labels baseada no número de jogadores
+      const N = seats.length;
+      let labels;
+
+      if (N === 6) labels = ["BTN", "SB", "BB", "UTG", "HJ", "CO"];
+      else if (N === 5) labels = ["BTN", "SB", "BB", "HJ", "CO"]; // Remove UTG
+      else if (N === 4) labels = ["BTN", "SB", "BB", "CO"];       // Remove UTG e HJ
+      else if (N === 3) labels = ["BTN", "SB", "BB"];             // Remove UTG, HJ e CO
+      else if (N === 2) labels = ["BTN", "SB"];                   // Heads-Up
+      else labels = ["BTN", "SB", "BB", "UTG", "HJ", "CO"];       // Fallback
+
+      if (startIdx >= 0) {
+        for (let k = 0; k < seats.length; k++) {
+          const seat = seats[(startIdx + k) % seats.length];
+          const p = seatToPlayer.get(seat);
+          // Atribui a label correta baseada na posição no círculo
+          if (p && k < labels.length) seatPosRaw[p.id] = labels[k];
+        }
+      } else {
+        model.players.forEach((p, i) => seatPosRaw[p.id] = labels[i] || `P${i + 1}`);
       }
 
-      function saveNotes(handId, data) {
-        localStorage.setItem(notesStoreKey(handId), JSON.stringify(data));
+      const seatPos = {};
+      Object.keys(seatPosRaw).forEach(pid => {
+        seatPos[pid] = MAP_TO_DESIRED[seatPosRaw[pid]] || seatPosRaw[pid];
+      });
+      model._posById = seatPos;
+    }
+    function buildVisualLayoutByPosition() { const hero = model.players.find(p => p.id === model.heroId); if (!hero) return; const heroPos = model._posById?.[hero.id] || "SB"; const desiredRing = ["BTN", "SB", "BB", "EP", "MP", "CO"]; const heroIdx = desiredRing.indexOf(heroPos); const walk = ["SB", "BB", "EP", "MP", "CO", "BTN"]; const walkRot = (heroIdx >= 0) ? (function () { const base = ["SB", "BB", "EP", "MP", "CO", "BTN"]; const start = base.indexOf(heroPos); if (start < 0) return base; return [...base.slice(start), ...base.slice(0, start)]; })() : ["SB", "BB", "EP", "MP", "CO", "BTN"]; const mapping = {}; const betMapping = {}; walkRot.forEach((pos, i) => { mapping[pos] = VISUAL_SPOTS[i]; betMapping[pos] = BET_SPOTS[i]; }); model._visualById = {}; model._betSpotById = {}; model.players.forEach(p => { const pos = model._posById?.[p.id] || "—"; model._visualById[p.id] = mapping[pos] || "pTL"; model._betSpotById[p.id] = betMapping[pos] || "bTL"; }); }
+
+    function buildSteps() {
+      const stacks = {}; model.players.forEach(p => stacks[p.id] = p.startStack); let pot = 0; let street = "Preflop"; let prevStreet = street; let streetBets = {}; const folded = {}; const payouts = {}; let raiseLevel = 0; let levelById = {}; const snaps = [];
+      const createSnap = (s, board, text, actor = null, extra = {}) => { return { step: 0, street: s, board: board, pot, stacks: { ...stacks }, streetBets: { ...streetBets }, folded: { ...folded }, levelById: { ...levelById }, actionText: text, actorId: actor, ...extra }; };
+      snaps.push(createSnap("Preflop", [], "Start of hand")); let stepCounter = 0; let currentBoard = []; const cc = model.community || []; const flop = cc.slice(0, 3); const turn = cc.length >= 4 ? cc.slice(0, 4) : [];
+
+      (model.actions || []).forEach((a) => {
+        const nextStreet = a?.street || "—";
+        if (nextStreet !== prevStreet) {
+
+          // 1. Injeção de cartas para All-in (Correção principal)
+          // Se o jogo pulou direto para o Summary (fim de mão), precisamos injetar Turn e River se faltar
+          if (nextStreet === "Summary" || nextStreet === "Payout") {
+            // Se estávamos no Flop e faltam cartas, injeta Turn
+            if (currentBoard.length === 3 && cc.length >= 4) {
+              streetBets = {}; raiseLevel = 0; levelById = {};
+              stepCounter++;
+              snaps.push(createSnap("Turn", turn, "— TURN —"));
+              currentBoard = turn;
+            }
+            // Se estávamos no Turn (ou acabamos de injetar) e faltam cartas, injeta River
+            if (currentBoard.length === 4 && cc.length === 5) {
+              streetBets = {}; raiseLevel = 0; levelById = {};
+              stepCounter++;
+              // Detecta se é RIT para por o label correto
+              const label = model.isRIT ? "— RUN IT TWICE —" : "— RIVER —";
+              snaps.push(createSnap("River", cc.slice(0, 5), label));
+              currentBoard = cc.slice(0, 5);
+            }
+          }
+
+          // 2. Atualização de Estado da Rua
+          streetBets = {}; raiseLevel = 0; levelById = {};
+          prevStreet = nextStreet;
+          street = nextStreet;
+
+          // Atualiza board para a nova rua (se não for pulo direto para Summary)
+          if (street === "Flop") currentBoard = flop;
+          else if (street === "Turn") currentBoard = turn;
+          else if (street === "River") { if (model.isRIT) { } else { currentBoard = cc.slice(0, 5); } }
+
+          // 3. Criação do Snap da Rua (Label)
+          // CORREÇÃO: NÃO criar snap visual para "Summary", pois ele quebra o layout RIT.
+          // O passo "Payout" no final cuidará da exibição.
+          if (street !== "Summary") {
+            let label = `— ${String(street).toUpperCase()} —`;
+            if (model.isRIT && street === "River") label = "— RUN IT TWICE —";
+            stepCounter++;
+            snaps.push(createSnap(street, currentBoard, label));
+          }
+        }
+
+        // Processamento da Ação
+        if (a?.type === "FOLD" && a?.playerId) folded[a.playerId] = true;
+        const isWins = (a?.type === "WINS");
+        if (isWins && a?.playerId) payouts[a.playerId] = (payouts[a.playerId] || 0) + (a.amt || 0);
+        const src = (a?.source || "").toUpperCase();
+        const isRaiseAllIn = (a?.type === "ALL_IN" && src === "RAISE");
+        const isCallAllIn = (a?.type === "ALL_IN" && src === "CALL");
+        const isIncrease = (a?.type === "BET") || (a?.type === "RAISE") || isRaiseAllIn;
+        const isCall = (a?.type === "CALL") || isCallAllIn;
+
+        if (a?.type === "SMALL_BLIND" || a?.type === "BIG_BLIND") { if (a?.playerId) levelById[a.playerId] = 0; }
+        else if (isIncrease) { raiseLevel = Math.min(raiseLevel + 1, 6); if (a?.playerId) levelById[a.playerId] = raiseLevel; }
+        else if (isCall) { if (a?.playerId) levelById[a.playerId] = raiseLevel; }
+        else { if (a?.playerId && levelById[a.playerId] == null) levelById[a.playerId] = 0; }
+
+        if (a?.playerId && stacks[a.playerId] != null) stacks[a.playerId] += (a.amt || 0);
+        if (isWins) return; // Pula criação de snap para a ação de WINS
+
+        if ((a?.amt || 0) < 0) { const contrib = Math.abs(a.amt); pot += contrib; streetBets[a.playerId] = (streetBets[a.playerId] || 0) + contrib; }
+        stepCounter++; snaps.push(createSnap(nextStreet, currentBoard, actionLabel(a), a?.playerId || null));
+      });
+
+      // Criação do passo Payout Final
+      const payoutIds = Object.keys(payouts);
+      if (payoutIds.length) {
+        stepCounter++;
+        snaps.push({ step: stepCounter, street: "Payout", board: [], pot, stacks: { ...stacks }, streetBets: {}, folded: { ...folded }, levelById: { ...levelById }, payouts: { ...payouts }, actionText: "— PAYOUT —", actorId: null, isRIT: model.isRIT });
       }
+      snaps.forEach((s, i) => s.step = i); steps = snaps; return steps;
+    }
 
-      function ensureStreet(notes, street) { if (!notes[street]) notes[street] = []; return notes[street]; }
+    function computeChapters() { chapter = { Preflop: 0, Flop: null, Turn: null, River: null, Summary: null }; for (let i = 0; i < steps.length; i++) { const s = steps[i]; if (!s) continue; if (s.street === "Flop" && chapter.Flop == null) chapter.Flop = i; if (s.street === "Turn" && chapter.Turn == null) chapter.Turn = i; if (s.street === "River" && chapter.River == null) chapter.River = i; if (s.street === "Summary" && chapter.Summary == null) chapter.Summary = i; } $("#goPre").disabled = false; $("#goFlop").disabled = chapter.Flop == null; $("#goTurn").disabled = chapter.Turn == null; $("#goRiver").disabled = chapter.River == null; $("#goSD").disabled = chapter.Summary == null; }
+    function setChapterActive(st) { const setP = (id, on) => $(id).classList.toggle("primary", !!on); setP("#goPre", st === "Preflop"); setP("#goFlop", st === "Flop"); setP("#goTurn", st === "Turn"); setP("#goRiver", st === "River"); setP("#goSD", st === "Summary"); }
+    function makeBetPile(bbAmount, betSpotClass, level, chipsCount) { const el = document.createElement("div"); el.className = `betPile ${betSpotClass}`; const lvl = Math.min(Math.max(level || 0, 0), 6); el.style.setProperty("--chipColor", CHIP_LEVEL_COLORS[lvl] || CHIP_LEVEL_COLORS[0]); const n = Math.max(1, chipsCount || 3); const chipsHtml = Array.from({ length: n }).map(() => `<div class="chip"></div>`).join(""); el.innerHTML = `<div class="chips">${chipsHtml}</div><div class="amt mono">${bbAmount}</div>`; return el; }
+    function makeWinPile(bbAmount, betSpotClass, chipsCount) { const el = document.createElement("div"); el.className = `winPile ${betSpotClass}`; el.style.setProperty("--chipColor", "#ffd66b"); const n = Math.max(4, Math.min(12, chipsCount || 8)); const chipsHtml = Array.from({ length: n }).map(() => `<div class="chip"></div>`).join(""); el.innerHTML = `<div class="chips">${chipsHtml}</div><div class="amt mono">+${bbAmount}bb</div>`; return el; }
 
-      // Função auxiliar para sincronizar notas com o Firestore
-      async function syncNotesToCloud(handId, notesData) {
-        if (!handId || !navigator.onLine) return;
-        try {
-          await db.collection("hands").doc(handId).set({
-            notes: notesData,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-        } catch (e) {
-          console.warn("Nota salva localmente, mas falhou ao sincronizar:", e);
+    function renderTable() {
+      const table = $("#table"); Array.from(table.querySelectorAll(".seat, .betPile, .winPile")).forEach(el => el.remove()); const snap = steps[idx]; if (!snap) return; const bb = model.meta.bb || 1;
+      $("#potVal").textContent = fmtBB((snap.pot || 0) / bb); const boardEl = $("#board"); boardEl.innerHTML = ""; boardEl.className = "board";
+      const showRITBoards = model.isRIT && (snap.street === "River" || snap.street === "Payout");
+
+      if (showRITBoards) {
+        const createBoardRow = (boardCards, label) => { const row = document.createElement("div"); row.className = "rit-board-row"; const lbl = document.createElement("div"); lbl.className = "rit-label"; lbl.textContent = label; const cardsDiv = document.createElement("div"); cardsDiv.className = "rit-cards-container"; const highlights = computeHighlightsForBoard(boardCards, model.players, snap.folded); boardCards.forEach(c => { const isHl = highlights && highlights.boardCards && highlights.boardCards.includes(c); const dim = highlights && highlights.boardCards && !isHl; cardsDiv.appendChild(makeCardlet(c, "board", { highlight: isHl, dim: dim })); }); row.appendChild(lbl); row.appendChild(cardsDiv); return { row, highlights }; };
+        boardEl.classList.add("rit-vertical-layout"); const b1Res = createBoardRow(model.board1, "Run 1"); boardEl.appendChild(b1Res.row); const b2Res = createBoardRow(model.board2, "Run 2"); boardEl.appendChild(b2Res.row); const combinedHoleHighlights = {}; if (b1Res.highlights && b1Res.highlights.holeCardsByPid) Object.assign(combinedHoleHighlights, b1Res.highlights.holeCardsByPid); if (b2Res.highlights && b2Res.highlights.holeCardsByPid) Object.assign(combinedHoleHighlights, b2Res.highlights.holeCardsByPid); snap.mergedHighlights = { holeCardsByPid: combinedHoleHighlights };
+      } else {
+        const board = snap.board || [];
+        if (!board.length && snap.street !== "Payout") { const d = document.createElement("div"); d.className = "muted small"; d.textContent = "Board: —"; boardEl.appendChild(d); } else if (board.length) {
+          const isShowdown = (snap.street === "Summary" || snap.street === "Payout");
+          const highlights = isShowdown ? computeHighlightsForBoard(board, model.players, snap.folded) : null;
+          snap.mergedHighlights = highlights;
+          board.forEach((c) => { const isHl = highlights && highlights.boardCards && highlights.boardCards.includes(c); const dim = highlights && highlights.boardCards && !isHl; boardEl.appendChild(makeCardlet(c, "board", { highlight: isHl, dim: dim })); });
         }
       }
 
-      function renderThread(handId, street) { const threadEl = document.getElementById("thread"); if (!threadEl) return; const notes = loadNotes(handId); const list = ensureStreet(notes, street); threadEl.innerHTML = ""; list.forEach(m => { const el = document.createElement("div"); el.className = "msg"; const dt = new Date(m.ts || Date.now()); el.innerHTML = `<div class="meta"><div><b>${escapeHtml(m.author || "—")}</b></div><div>${escapeHtml(dt.toLocaleString())}</div></div><div class="text">${escapeHtml(m.text || "")}</div>`; threadEl.appendChild(el); }); threadEl.scrollTop = threadEl.scrollHeight; }
+      $("#actionText").textContent = snap.actionText || "—"; setChapterActive(snap.street);
 
-      function ensureNameGate(onOk) { const author = getAuthor(); if (author) { onOk(author); return; } const modal = document.getElementById("nameModal"); const inp = document.getElementById("nameInput"); const btnSave = document.getElementById("nameSave"); const btnCancel = document.getElementById("nameCancel"); modal.classList.add("show"); inp.value = ""; inp.focus(); const close = () => modal.classList.remove("show"); const onSave = () => { const name = (inp.value || "").trim(); if (!name) return; setAuthor(name); close(); onOk(name); }; const onCancel = () => { close(); }; const onKey = (e) => { if (e.key === "Enter") onSave(); if (e.key === "Escape") onCancel(); }; btnSave.addEventListener("click", onSave); btnCancel.addEventListener("click", onCancel); inp.addEventListener("keydown", onKey); }
+      model.players.forEach(p => {
+        const isFolded = !!snap.folded?.[p.id]; const seat = document.createElement("div"); const active = (snap.actorId === p.id); const isHero = (p.id === model.heroId); seat.className = `seat ${model._visualById?.[p.id] || "pTL"}` + (active ? " active" : "") + (isFolded ? " folded" : "") + (isHero ? " hero" : ""); seat.setAttribute('data-pid', p.id); if (isHero) seat.setAttribute('data-hero', '1')
+        const posLabel = model._posById?.[p.id] || `Seat ${p.seat}`; const isBTN = posLabel === "BTN"; const stackBB = ((snap.stacks?.[p.id] ?? 0) / bb);
+        const showVillain = (snap.street === "Summary" || snap.street === "Payout") && p.cards && p.cards.length; const showCards = (isHero || showVillain) && !isFolded;
+        seat.innerHTML = `<div class="badges" style="justify-content:flex-end; margin-bottom:8px;">${isBTN ? `<span class="badge btn">BTN</span>` : ``}<span class="badge">${posLabel}</span></div>`;
+        const cardsRow = document.createElement("div"); cardsRow.className = "cardsRow";
+        if (isFolded) { } else if (showCards) { const displayCards = sortCardsForDisplay(p.cards); const winnerCardsSet = (snap.mergedHighlights && snap.mergedHighlights.holeCardsByPid && snap.mergedHighlights.holeCardsByPid[p.id]) ? new Set(snap.mergedHighlights.holeCardsByPid[p.id]) : null; displayCards.forEach(c => { const isHl = winnerCardsSet && winnerCardsSet.has(c); const shouldDim = winnerCardsSet && !isHl; cardsRow.appendChild(makeCardlet(c, "player", { highlight: !!isHl, dim: shouldDim })); }); } else { for (let k = 0; k < 6; k++) cardsRow.appendChild(makeCardBack()); }
+        seat.appendChild(cardsRow); if (isFolded) { const fm = document.createElement("div"); fm.className = "foldMark mono"; fm.textContent = "FOLD"; seat.appendChild(fm); }
+        const bar = document.createElement("div"); bar.className = "playerBar"; bar.innerHTML = `<div class="pname">${p.nick || p.id}</div><div class="pstack mono">${fmtBB(stackBB)}</div>`; seat.appendChild(bar);
 
-      function computePotOddsForActor(snap, actorId) { if (!actorId) return null; const bb = model?.bb || 1; const sbets = snap?.streetBets || {}; const maxBet = Math.max(0, ...Object.values(sbets).map(v => v / bb)); const myBet = (sbets[actorId] || 0) / bb; const toCall = Math.max(0, maxBet - myBet); if (toCall <= 0) return null; const pot = (snap?.pot || 0) / bb; const odds = toCall / (pot + toCall); return { pot, toCall, odds }; }
+        if (!isHero) {
+          const st = model?._statsByPid?.[String(p.id)];
+          if (st) {
+            const stEl = document.createElement("div");
+            stEl.className = "pstats mono";
+            stEl.textContent = fmtPlayerStatsLine(st);
+            seat.appendChild(stEl);
+          }
+        }
 
-      function renderPotOdds() { const box = document.getElementById("potOddsTable"); if (!box) return; box.innerHTML = ""; box.style.display = "none"; const snap = steps[idx]; if (!snap) return; const heroId = String(model.heroId || ""); if (!heroId) return; const next = (idx + 1 < steps.length) ? steps[idx + 1] : null; if (!next) return; if (String(next.actorId || "") !== heroId) return; const po = computePotOddsForActor(snap, heroId); if (!po) return; const row = (label, value) => { const el = document.createElement("div"); el.className = "poRow"; el.innerHTML = `<div class="poLabel">${label}</div><div class="poValue mono">${value}</div>`; return el; }; box.appendChild(row("Pot", fmtBB(po.pot))); box.appendChild(row("To call", fmtBB(po.toCall))); box.appendChild(row("Pot odds", (po.odds * 100).toFixed(2) + "%")); const seatEl = document.querySelector(`.seat[data-pid="${heroId}"]`); if (!seatEl) return; const rect = seatEl.getBoundingClientRect(); const tableEl = document.getElementById("table"); if (!tableEl) return; const tRect = tableEl.getBoundingClientRect(); const x = (rect.left - tRect.left) + (rect.width / 2); const GAP_BELOW = 8; let y = (rect.bottom - tRect.top) + GAP_BELOW; box.style.left = x + "px"; box.style.top = y + "px"; box.style.transform = "translateX(-50%)"; box.style.display = "flex"; }
+        table.appendChild(seat);
+      });
 
-      function streetTitle(s) { const st = (s || "").toLowerCase(); if (st === "preflop") return "PRE-FLOP"; if (st === "flop") return "FLOP"; if (st === "turn") return "TURN"; if (st === "river") return "RIVER"; if (st === "payout") return "PAYOUT"; if (st === "summary") return "SUMMARY"; return String(s || "").toUpperCase(); }
+      model.players.forEach(p => {
+        const bet = (snap.streetBets?.[p.id] ?? 0) / bb; if (bet > 0) { const spot = model._betSpotById?.[p.id] || "bTL"; const pos = model._posById?.[p.id] || ""; const lvl = snap.levelById?.[p.id] ?? 0; const isPre = (snap.street === "Preflop"); const isSBBlindOnly = isPre && pos === "SB" && lvl === 0 && Math.abs(bet - 0.5) < 1e-6; const isBBBlindOnly = isPre && pos === "BB" && lvl === 0 && Math.abs(bet - 1.0) < 1e-6; let level = lvl; let chipsCount; if (isSBBlindOnly) { level = 0; chipsCount = 1; } else if (isBBBlindOnly) { level = 0; chipsCount = 2; } else { const cl = Math.min(Math.max(level, 0), 6); chipsCount = Math.min(8, 2 + Math.max(cl, 0)); } const pile = makeBetPile(fmtBB(bet), spot, level, chipsCount); table.appendChild(pile); }
+      });
 
-      function getNoteStreetFromSnap(snap) { const s = snap?.street || "Preflop"; if (s === "Summary" || s === "Payout") return lastNonSummaryStreet || "Flop"; return s; } let lastNonSummaryStreet = "Preflop";
+      if (snap.payouts) { table.querySelectorAll(".winPile").forEach(n => n.remove()); Object.entries(snap.payouts).forEach(([pid, won]) => { if (!won || won <= 0) return; const pos = model._posById?.[pid]; if (!pos) return; const spot = (model._betSpotById?.[pid] || "bTL"); const bb = (model?.meta?.bb || 1); const wonBB = (won / bb); const wonTxt = (Math.round(wonBB * 10) / 10).toFixed(1); const chipsCount = Math.max(8, Math.min(14, Math.round(wonBB / 10) + 8)); const pile = makeWinPile(wonTxt, spot, chipsCount); table.appendChild(pile); }); }
+    }
 
-      function updateNotesUI() { const panel = document.getElementById("notesPanel"); if (!panel || !model || !steps || !steps.length) return; const snap = steps[idx] || steps[0]; const noteStreet = getNoteStreetFromSnap(snap); if (snap.street && snap.street !== "Summary" && snap.street !== "Payout") lastNonSummaryStreet = snap.street; panel.style.display = (steps && steps.length ? "block" : "none"); const titleEl = document.getElementById("notesStreetTitle"); titleEl.textContent = streetTitle(noteStreet); const authorEl = document.getElementById("notesAuthor"); const author = getAuthor(); if (authorEl) authorEl.textContent = author ? `Autor: ${author}` : "Clique no campo abaixo para informar seu nome"; const draft = document.getElementById("noteDraft"); if (draft) { if (!author) { draft.classList.add("locked"); draft.placeholder = "Clique aqui para informar seu nome..."; } else { draft.classList.remove("locked"); draft.placeholder = "Escreva um comentário..."; } } renderPotOdds(snap); const handId = currentHandId || (model?.meta?.handId || "unknown"); renderThread(handId, noteStreet); }
+    function renderHUD() { const snap = steps[idx]; if (!snap) return; $("#btnPrev").disabled = idx <= 0; $("#btnNext").disabled = idx >= steps.length - 1; $("#btnPlay").disabled = steps.length <= 1; $("#btnPlay").textContent = timer ? "⏸" : "▶"; }
+    function renderAll() { if (!model || !steps || !steps.length) return; if (!steps[idx]) idx = 0; renderTable(); renderHUD(); updateNotesUI(); renderPotOdds(); }
+    function stopPlay() { if (timer) { clearInterval(timer); timer = null; } renderHUD(); }
+    function startPlay() { stopPlay(); const speed = 1; const baseMs = 900; const ms = Math.max(120, Math.round(baseMs / speed)); timer = setInterval(() => { if (idx >= steps.length - 1) { stopPlay(); return; } idx++; renderAll(); bindNotesControls(); updateNotesUI(); }, ms); renderHUD(); }
+    function jumpTo(stepIndex) { stopPlay(); idx = Math.min(Math.max(0, stepIndex), steps.length - 1); renderAll(); }
 
-      function bindNotesControls() {
-        const draft = document.getElementById("noteDraft");
-        const btnNext = document.getElementById("btnNextStreet");
-        if (!draft || !btnNext) return;
+    // --- LÓGICA DE INIT E FIRESTORE ---
 
-        draft.addEventListener("focus", () => ensureNameGate(() => { }));
+    function initHand(xmlText) {
+      try {
+        stopPlay();
+        model = parseXmlToModel(xmlText);
+        computePositions();
+        buildVisualLayoutByPosition();
+        steps = buildSteps();
+        idx = 0;
+        computeChapters();
+        renderAll();
+        bindNotesControls();
+        updateNotesUI();
+      } catch (e) { alert(e.message || String(e)); }
+    }
 
-        const submitDraftIfAny = async () => {
-          const txt = (draft.value || "").trim();
-          if (!txt) return;
-          const handId = currentHandId || (model?.meta?.handId || "unknown");
-          const snap = steps[idx] || steps[0];
-          const noteStreet = getNoteStreetFromSnap(snap);
+    $("#btnLoad").addEventListener("click", () => {
+      initHand($("#xmlInput").value.trim());
+      if (!model) return;
 
-          ensureNameGate(async (author) => {
-            const notes = loadNotes(handId);
-            const list = ensureStreet(notes, noteStreet);
+      const hh = prompt(
+        "Incluir Stats? (Opcional)"
+      );
+
+      if (hh && hh.trim()) {
+        applyImportedStatsToModel(hh);
+        renderAll();
+      }
+    });
+
+    // --- FIRESTORE SAVE ---
+
+    async function saveHandToCloud() {
+      const xml = $("#xmlInput").value.trim();
+      if (!xml) { alert("Cole o XML antes."); return; }
+
+      try {
+        const tempModel = parseXmlToModel(xml);
+        if (!model || model.meta.handId !== tempModel.meta.handId) {
+          initHand(xml);
+        }
+      } catch (e) {
+        alert("Erro ao ler o XML: " + e.message);
+        return;
+      }
+
+      const handId = model.meta.handId || `hand_${Date.now()}`;
+      const notes = loadNotes(handId);
+
+      const data = {
+        xml: xml,
+        notes: notes,
+        editKey: null,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      try {
+        await db.collection("hands").doc(handId).set(data, { merge: true });
+        currentHandId = handId;
+        currentEditKey = null;
+
+        const url = `${window.location.origin}${window.location.pathname}#id=${handId}`;
+        navigator.clipboard.writeText(url).then(() => {
+          alert(`✅ Link Gerado e Copiado!\n\n${url}`);
+        }).catch(() => {
+          prompt("✅ Link Gerado!\n\nCopie manualmente:", url);
+        });
+
+      } catch (e) {
+        console.error("Erro Firebase:", e);
+        alert(`❌ Erro ao salvar no banco.\n\n${e.message}`);
+      }
+    }
+
+    $("#btnSaveCloud").addEventListener("click", saveHandToCloud);
+
+    // --- FIRESTORE LOAD ---
+
+    async function loadHandFromCloud(handId) {
+      try {
+        const doc = await db.collection("hands").doc(handId).get();
+        if (!doc.exists) { alert("Mão não encontrada no banco de dados."); return; }
+
+        const data = doc.data();
+
+        if (data.notes) {
+          saveNotes(handId, data.notes);
+        }
+
+        currentHandId = handId;
+        currentEditKey = data.editKey || null;
+
+        $("#xmlInput").value = data.xml;
+        initHand(data.xml);
+
+      } catch (e) {
+        console.error(e);
+        alert("Erro ao carregar do banco: " + e.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith("#id=")) {
+        const handId = hash.substring(4);
+        loadHandFromCloud(handId);
+      }
+    });
+
+    $("#btnPrev").addEventListener("click", () => { stopPlay(); idx = Math.max(0, idx - 1); renderAll(); });
+    $("#btnNext").addEventListener("click", () => { stopPlay(); idx = Math.min(steps.length - 1, idx + 1); renderAll(); });
+    $("#btnPlay").addEventListener("click", () => { timer ? stopPlay() : startPlay(); });
+    $("#goPre").addEventListener("click", () => jumpTo(chapter.Preflop ?? 0));
+    $("#goFlop").addEventListener("click", () => { if (chapter.Flop != null) jumpTo(chapter.Flop); });
+    $("#goTurn").addEventListener("click", () => { if (chapter.Turn != null) jumpTo(chapter.Turn); });
+    $("#goRiver").addEventListener("click", () => { if (chapter.River != null) jumpTo(chapter.River); });
+    $("#goSD").addEventListener("click", () => { if (chapter.Summary != null) jumpTo(chapter.Summary); });
+    window.addEventListener("keydown", (e) => { if (!model) return; const tag = (document.activeElement?.tagName || "").toLowerCase(); if (tag === "textarea" || tag === "input") return; if (e.key === "ArrowLeft") { stopPlay(); idx = Math.max(0, idx - 1); renderAll(); } if (e.key === "ArrowRight") { stopPlay(); idx = Math.min(steps.length - 1, idx + 1); renderAll(); } if (e.key === " " || e.code === "Space") { e.preventDefault(); timer ? stopPlay() : startPlay(); } const k = e.key.toLowerCase(); if (k === "f" && chapter.Flop != null) jumpTo(chapter.Flop); if (k === "t" && chapter.Turn != null) jumpTo(chapter.Turn); if (k === "r" && chapter.River != null) jumpTo(chapter.River); if (k === "s" && chapter.Summary != null) jumpTo(chapter.Summary); });
+
+    /* Notes Logic */
+    const STORAGE_KEY_AUTHOR = "plo6_replay_authorName";
+    const notesStoreKey = (handId) => `plo6_notes_${handId}`;
+
+    let selectedNoteStreet = null;
+    let editingNoteIdx = null;
+
+    function getAuthor() { return (localStorage.getItem(STORAGE_KEY_AUTHOR) || "").trim(); }
+    function setAuthor(name) { localStorage.setItem(STORAGE_KEY_AUTHOR, (name || "").trim()); }
+
+    function loadNotes(handId) {
+      try { const raw = localStorage.getItem(notesStoreKey(handId)); return raw ? JSON.parse(raw) : {}; }
+      catch (e) { return {}; }
+    }
+
+    function saveNotes(handId, data) {
+      localStorage.setItem(notesStoreKey(handId), JSON.stringify(data));
+    }
+
+    function ensureStreet(notes, street) { if (!notes[street]) notes[street] = []; return notes[street]; }
+
+    async function syncNotesToCloud(handId, notesData) {
+      if (!handId || !navigator.onLine) return;
+      try {
+        await db.collection("hands").doc(handId).set({
+          notes: notesData,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (e) {
+        console.warn("Nota salva localmente, mas falhou ao sincronizar:", e);
+      }
+    }
+
+    function renderThread(handId, street) {
+      const threadEl = document.getElementById(`thread-${street.toLowerCase()}`);
+      if (!threadEl) return;
+
+      const notes = loadNotes(handId);
+      const list = ensureStreet(notes, street);
+      threadEl.innerHTML = "";
+
+      list.forEach((m, i) => {
+        const el = document.createElement("div");
+        el.className = "street-msg";
+        const dt = new Date(m.ts || Date.now());
+
+        el.innerHTML = `
+            <div class="msg-content">${escapeHtml(m.text || "")}</div>
+            <div class="msg-meta">
+                <span><b>${escapeHtml(m.author)}</b> • ${dt.toLocaleTimeString()}</span>
+            </div>
+            <div class="msg-actions">
+              <button class="icon-btn" onclick="editNote('${street}', ${i})" title="Editar">✎</button>
+              <button class="icon-btn delete" onclick="deleteNote('${street}', ${i})" title="Excluir">🗑</button>
+            </div>
+          `;
+        threadEl.appendChild(el);
+      });
+      threadEl.scrollTop = threadEl.scrollHeight;
+    }
+
+    function renderAllThreads(handId) {
+      ["Preflop", "Flop", "Turn", "River"].forEach(s => renderThread(handId, s));
+    }
+
+    // Funções Globais para os botões (onclick)
+    window.selectNoteStreet = (street) => {
+      selectedNoteStreet = street;
+      editingNoteIdx = null;
+
+      document.querySelectorAll('.street-note-box').forEach(b => b.classList.remove('active'));
+      const box = document.getElementById(`box-${street}`);
+      if (box) box.classList.add('active');
+
+      const labelEl = document.getElementById("currentStreetLabel");
+      labelEl.textContent = `Postando em: ${street.toUpperCase()}`;
+
+      const draft = document.getElementById("noteDraft");
+      draft.value = "";
+      draft.focus();
+
+      const btn = document.getElementById("btnSaveNote");
+      btn.textContent = "SEND";
+      document.getElementById("noteInputArea").classList.remove("editing");
+    };
+
+    window.editNote = (street, index) => {
+      const handId = currentHandId || (model?.meta?.handId || "unknown");
+      const notes = loadNotes(handId);
+      const list = ensureStreet(notes, street);
+
+      if (list[index]) {
+        selectNoteStreet(street);
+        document.getElementById("noteDraft").value = list[index].text;
+        editingNoteIdx = index;
+
+        const btn = document.getElementById("btnSaveNote");
+        btn.textContent = "UPDATE";
+        document.getElementById("noteInputArea").classList.add("editing");
+      }
+    };
+
+    window.deleteNote = (street, index) => {
+      if (!confirm("Excluir esta anotação?")) return;
+
+      const handId = currentHandId || (model?.meta?.handId || "unknown");
+      const notes = loadNotes(handId);
+      const list = ensureStreet(notes, street);
+
+      list.splice(index, 1);
+      saveNotes(handId, notes);
+      renderThread(handId, street);
+      syncNotesToCloud(handId, notes);
+    };
+
+
+    function ensureNameGate(onOk) { const author = getAuthor(); if (author) { onOk(author); return; } const modal = document.getElementById("nameModal"); const inp = document.getElementById("nameInput"); const btnSave = document.getElementById("nameSave"); const btnCancel = document.getElementById("nameCancel"); modal.classList.add("show"); inp.value = ""; inp.focus(); const close = () => modal.classList.remove("show"); const onSave = () => { const name = (inp.value || "").trim(); if (!name) return; setAuthor(name); close(); onOk(name); }; const onCancel = () => { close(); }; const onKey = (e) => { if (e.key === "Enter") onSave(); if (e.key === "Escape") onCancel(); }; btnSave.addEventListener("click", onSave); btnCancel.addEventListener("click", onCancel); inp.addEventListener("keydown", onKey); }
+
+    function computePotOddsForActor(snap, actorId) {
+      if (!actorId) return null;
+
+      const bb = model?.meta?.bb || 1;
+
+      const sbets = snap?.streetBets || {};
+      const maxBet = Math.max(0, ...Object.values(sbets).map(v => v / bb));
+      const myBet = (sbets[actorId] || 0) / bb;
+      const toCall = Math.max(0, maxBet - myBet);
+
+      if (toCall <= 0) return null;
+
+      const pot = (snap?.pot || 0) / bb;
+      const odds = toCall / (pot + toCall);
+
+      return { pot, toCall, odds };
+    }
+
+    function renderPotOdds() { const box = document.getElementById("potOddsTable"); if (!box) return; box.innerHTML = ""; box.style.display = "none"; const snap = steps[idx]; if (!snap) return; const heroId = String(model.heroId || ""); if (!heroId) return; const next = (idx + 1 < steps.length) ? steps[idx + 1] : null; if (!next) return; if (String(next.actorId || "") !== heroId) return; const po = computePotOddsForActor(snap, heroId); if (!po) return; const row = (label, value) => { const el = document.createElement("div"); el.className = "poRow"; el.innerHTML = `<div class="poLabel">${label}</div><div class="poValue mono">${value}</div>`; return el; }; box.appendChild(row("Pot", fmtBB(po.pot))); box.appendChild(row("To call", fmtBB(po.toCall))); box.appendChild(row("Pot odds", (po.odds * 100).toFixed(2) + "%")); const seatEl = document.querySelector(`.seat[data-pid="${heroId}"]`); if (!seatEl) return; const rect = seatEl.getBoundingClientRect(); const tableEl = document.getElementById("table"); if (!tableEl) return; const tRect = tableEl.getBoundingClientRect(); const x = (rect.left - tRect.left) + (rect.width / 2); const GAP_BELOW = 8; let y = (rect.bottom - tRect.top) + GAP_BELOW; box.style.left = x + "px"; box.style.top = y + "px"; box.style.transform = "translateX(-50%)"; box.style.display = "flex"; }
+
+    function getNoteStreetFromSnap(snap) { const s = snap?.street || "Preflop"; if (s === "Summary" || s === "Payout") return lastNonSummaryStreet || "Flop"; return s; } let lastNonSummaryStreet = "Preflop";
+
+    function updateNotesUI() {
+      const panel = document.getElementById("notesPanel");
+      if (!panel || !model || !steps || !steps.length) return;
+
+      panel.style.display = (steps && steps.length ? "flex" : "none");
+
+      const authorEl = document.getElementById("notesAuthor");
+      const author = getAuthor();
+      if (authorEl) authorEl.textContent = author ? `Autor: ${author}` : "Defina um nome";
+
+      const draft = document.getElementById("noteDraft");
+      if (draft) { if (!author) { draft.classList.add("locked"); draft.placeholder = "Clique aqui para informar seu nome..."; } else { draft.classList.remove("locked"); draft.placeholder = "Escreva um comentário..."; } }
+
+      if (!selectedNoteStreet) {
+        const snap = steps[idx] || steps[0];
+        const street = getNoteStreetFromSnap(snap);
+        selectNoteStreet(street);
+      }
+
+      renderPotOdds();
+      const handId = currentHandId || (model?.meta?.handId || "unknown");
+      renderAllThreads(handId);
+    }
+
+    function bindNotesControls() {
+      const draft = document.getElementById("noteDraft");
+      const btnSend = document.getElementById("btnSaveNote");
+      if (!draft || !btnSend) return;
+
+      draft.addEventListener("focus", () => ensureNameGate(() => { }));
+
+      const submitDraftIfAny = async () => {
+        const txt = (draft.value || "").trim();
+        if (!txt) return;
+
+        const handId = currentHandId || (model?.meta?.handId || "unknown");
+        const street = selectedNoteStreet || "Preflop";
+
+        ensureNameGate(async (author) => {
+          const notes = loadNotes(handId);
+          const list = ensureStreet(notes, street);
+
+          if (editingNoteIdx !== null && editingNoteIdx >= 0) {
+            if (list[editingNoteIdx]) {
+              list[editingNoteIdx].text = txt;
+              list[editingNoteIdx].ts = Date.now();
+              list[editingNoteIdx].author = author;
+            }
+            editingNoteIdx = null;
+            document.getElementById("btnSaveNote").textContent = "SEND";
+            document.getElementById("noteInputArea").classList.remove("editing");
+          } else {
             list.push({ author, ts: Date.now(), text: txt });
+          }
 
-            // 1. Salva Local
-            saveNotes(handId, notes);
+          saveNotes(handId, notes);
+          draft.value = "";
 
-            // 2. Limpa campo e atualiza tela
-            draft.value = "";
-            renderThread(handId, noteStreet);
+          renderThread(handId, street);
+          await syncNotesToCloud(handId, notes);
+        });
+      };
 
-            // 3. SINCRONIZA COM A NUVEM (A MÁGICA ACONTECE AQUI)
-            await syncNotesToCloud(handId, notes);
-          });
-        };
+      btnSend.addEventListener("click", submitDraftIfAny);
+      draft.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); submitDraftIfAny(); } });
 
-        btnNext.addEventListener("click", () => { submitDraftIfAny(); goNextChapter(); });
-        draft.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); submitDraftIfAny(); } });
-
-        const btnChange = document.getElementById("btnChangeName");
-        if (btnChange) {
-          btnChange.addEventListener("click", () => {
-            localStorage.removeItem(STORAGE_KEY_AUTHOR);
-            ensureNameGate(() => { updateNotesUI(); });
-          });
-        }
+      const btnChange = document.getElementById("btnChangeName");
+      if (btnChange) {
+        btnChange.addEventListener("click", () => {
+          localStorage.removeItem(STORAGE_KEY_AUTHOR);
+          ensureNameGate(() => { updateNotesUI(); });
+        });
       }
+    }
 
-      function goNextChapter() { jumpTo(idx + 1); }
+  </script>
 
-    </script>
-
-    <div id="nameModal" class="nameModal" aria-hidden="true">
-      <div class="card">
-        <h3>Nome para comentar</h3>
-        <p>Digite seu nome.</p>
-        <input id="nameInput" type="text" placeholder="Ex.: Renan" />
-        <div class="actions">
-          <button id="nameCancel" class="btn">Cancelar</button>
-          <button id="nameSave" class="btn primary">Continuar</button>
-        </div>
+  <div id="nameModal" class="nameModal" aria-hidden="true">
+    <div class="card">
+      <h3>Nome para comentar</h3>
+      <p>Digite seu nome.</p>
+      <input id="nameInput" type="text" placeholder="Ex.: Renan" />
+      <div class="actions">
+        <button id="nameCancel" class="btn">Cancelar</button>
+        <button id="nameSave" class="btn primary">Continuar</button>
       </div>
     </div>
+  </div>
 
 </body>
 
