@@ -619,7 +619,21 @@
         currentEditKey = data.editKey || null;
 
         $("#xmlInput").value = data.xml;
+
+        // CARREGA AS STATS DA NUVEM
+        if (data.stats) {
+          currentRawStats = data.stats;
+        } else {
+          currentRawStats = "";
+        }
+
         initHand(data.xml);
+
+        // APLICA AS STATS DEPOIS DE INICIAR A MÃO
+        if (currentRawStats) {
+          applyImportedStatsToModel(currentRawStats);
+          renderAll(); // Re-renderiza para mostrar as stats nas cartas
+        }
 
       } catch (e) {
         console.error(e);
